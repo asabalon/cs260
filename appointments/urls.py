@@ -1,4 +1,4 @@
-"""cs260 URL Configuration
+"""superlists URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/1.8/topics/http/urls/
@@ -17,6 +17,6 @@ from django.conf.urls import include, url
 from django.contrib import admin
 
 urlpatterns = [
-	url(r'^appointments/', include('appointments.urls')),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^add/$', 'appointments.views.add_appointment', name='add_appointment'),
 ]
+
