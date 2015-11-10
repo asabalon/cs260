@@ -24,10 +24,10 @@ class AddAppointmentTests(StaticLiveServerTestCase):
 
 	def test_appointment_input_fields_are_present(self):
 		try: 
-			self.selenium.find_element_by_id('id_pet_desc')
-			self.selenium.find_element_by_id('id_visit_desc')
-			self.selenium.find_element_by_id('id_visit_sched')
-			self.selenium.find_element_by_id('id_vet_physician')
+			self.selenium.find_element_by_id('id_petDescription')
+			self.selenium.find_element_by_id('id_visitSchedule')
+			self.selenium.find_element_by_id('id_visitDescription')
+			self.selenium.find_element_by_id('id_veterinaryPhysician')
 			
 			pass
 		except NoSuchElementException as e:
