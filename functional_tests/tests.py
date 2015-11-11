@@ -24,14 +24,21 @@ class AddAppointmentTests(StaticLiveServerTestCase):
 
 	def test_appointment_input_fields_are_present(self):
 		try: 
-			self.selenium.find_element_by_id('id_petDescription')
-			self.selenium.find_element_by_id('id_visitSchedule')
-			self.selenium.find_element_by_id('id_visitDescription')
-			self.selenium.find_element_by_id('id_veterinaryPhysician')
+			self.selenium.find_element_by_id('id_pet_description')
+			self.selenium.find_element_by_id('id_visit_schedule')
+			self.selenium.find_element_by_id('id_visit_description')
+			self.selenium.find_element_by_id('id_veterinary_physician')
 			
 			pass
 		except NoSuchElementException as e:
 			self.fail(e)
 
 	def test_pet_owner_field_is_prefilled(self):
+		# No Login capabilities yet; Assume name comes from Database
+		try: 
+			self.assertFalse(self.selenium.find_element_by_id('id_pet_owner').text is "Default, Default Default")
+		except NoSuchElementException as e:
+			self.fail(e)
+
+	def test_has_date_and_time_picker_widget(self):
 		self.fail('Finish the Tests')
