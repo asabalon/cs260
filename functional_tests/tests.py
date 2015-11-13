@@ -42,10 +42,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
 			self.fail(e)
 
 	def test_has_date_and_time_picker_widget(self):
-		try: 
-			self.selenium.find_element_by_id('id_date_and_time_picker').text)
-		except NoSuchElementException as e:
-			self.fail(e)
+		self.fail('Write Test')
 
 	def test_has_navigation_buttons(self):
 		self.fail('Finish the Tests')
