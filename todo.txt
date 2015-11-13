@@ -1,0 +1,5 @@
+1. refactor appointments/views.py to handle validation plus prefilling
+2. refactor appointments/templates to include a base.html and bootstrap theme
+3. add to appointments/tests.py template inheritance tests
+4. refactor appointments/tests.py to different classes
+5. refactor functional_tests/tests.py to different classes

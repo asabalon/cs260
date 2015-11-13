@@ -43,3 +43,4 @@ class AddAppointmentPageTests(TestCase):
 		self.assertEqual(self.goto_add_appointment_with_params({'pet_owner_id' : customer.id}).context['pet_owner_id'], customer.id)
 
 
+

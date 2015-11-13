@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     # Third-party Applications
     'crispy_forms',
+    'bootstrap3_datetime',
     # Developer applications
     'appointments',
 )
