@@ -25,7 +25,7 @@ class Appointment(models.Model):
     pet_description = models.CharField(max_length=500)
     visit_schedule = models.DateTimeField(auto_now=False, auto_now_add=False)
     visit_description = models.CharField(max_length=500)
-    veterinary_physician = models.CharField(max_length=50)
+    veterinary_physician = models.ForeignKey(VeterinaryPhysician)
 
     def __str__(self):
         return "%s : %s : %s" % (self.pet_owner, self.visit_schedule, self.veterinary_physician)
