@@ -6,9 +6,5 @@ Add Appointment
 {% endblock %}
 
 {% block page_panel %}
-<form method="POST" action"{% url 'add_appointment' %}">
-	{{ form | crispy}}
-	{% csrf_token %}
-	<input type="submit" value="Submit"></input>
-</form>
+{% crispy form %}
 {% endblock %}

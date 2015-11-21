@@ -1,10 +1,10 @@
 from django.test import TestCase
-from django.shortcuts import render
-from django.http import HttpRequest
 from django.forms import ModelForm
 from .forms import AppointmentForm
 from .models import Customer
 from .models import Appointment
+from crispy_forms.bootstrap import FormActions
+from crispy_forms.layout import Submit, Reset, HTML
 
 
 class AddAppointmentPageTests(TestCase):
@@ -45,13 +45,15 @@ class AddAppointmentPageTests(TestCase):
         self.assertTrue(AppointmentForm._meta.model is Appointment)
 
     def test_appointment_model_refers_to_customer_model(self):
+        customer_field = None
+
         for field in Appointment._meta.get_fields():
             if (field.related_model is Customer):
-                pass
+                customer_field = field
             else:
                 continue
 
-        self.fail("No Customer Model Field Found")
+        self.assertTrue(customer_field)
 
     def test_add_appointment_page_forwards_pet_owner_id_after_post(self):
         customer = self.create_customer()
@@ -75,3 +77,18 @@ class AddAppointmentPageTests(TestCase):
                 'form']
 
         self.assertEqual(form['pet_owner_name'].value(), str(customer))
+
+    def test_form_helper_adds_necessary_buttons(self):
+        index = 0
+        for i, object in enumerate(AppointmentForm.helper.layout):
+            if (type(object) is FormActions):
+                index = i
+                break
+
+        for button in AppointmentForm.helper.layout[index]:
+            if (type(button) is Submit or Reset or HTML):
+                continue
+            else:
+                self.fail("Unrecognized Layout Object")
+
+        self.assertEqual(len(AppointmentForm.helper.layout[index]), 3)
