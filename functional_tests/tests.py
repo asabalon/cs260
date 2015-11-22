@@ -53,8 +53,8 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         ActionChains(self.selenium).move_to_element(active_day).click(active_day).perform()
         selected_datetime = self.selenium.find_element_by_id('id_visit_schedule').get_attribute('value')
 
-        self.assertEqual(time.strftime("%Y-%m-%d %I: %p"),
-                         time.strftime("%Y-%m-%d %I: %p", time.strptime(selected_datetime, "%Y-%m-%d %I:%M %p")))
+        self.assertEqual(time.strftime('%m/%d/%Y %I: %p'),
+                         time.strftime('%m/%d/%Y %I: %p', time.strptime(selected_datetime, '%m/%d/%Y %I:%M %p')))
 
     def test_has_navigation_buttons(self):
         try:
@@ -126,4 +126,30 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         self.assertEqual(len(new_visit_description_field.get_attribute('value')), 500)
 
     def test_visit_description_field_format_constraint(self):
+        sample_text = 'Text with ; character'
+        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+        visit_description_field = self.selenium.find_element_by_id('id_visit_description')
+
+        ActionChains(self.selenium).send_keys_to_element(visit_description_field, sample_text).move_to_element(
+            submit_button).click(submit_button).perform()
+
+        new_visit_description_error = self.selenium.find_element_by_id('error_1_id_visit_description')
+
+        self.assertEqual(new_visit_description_error.find_element_by_tag_name('strong').text,
+                         'No Special Characters are allowed in this field')
+
+    def test_scheduled_visit_field_format_constraint(self):
+        date_text = time.strftime('%Y/%m/%d')
+        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+        visit_schedule_field = self.selenium.find_element_by_name('visit_schedule')
+
+        ActionChains(self.selenium).send_keys_to_element(visit_schedule_field, date_text).move_to_element(
+            submit_button).click(submit_button).perform()
+
+        new_visit_schedule_error = self.selenium.find_element_by_id('error_1_id_visit_schedule')
+
+        self.assertEqual(new_visit_schedule_error.find_element_by_tag_name('strong').text,
+                         'Enter a valid date/time.')
+
+    def test_veterinary_physician_field_behavior(self):
         self.fail('Finish the Tests')

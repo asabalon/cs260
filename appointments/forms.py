@@ -4,7 +4,6 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Submit, Reset, HTML
 from crispy_forms.bootstrap import FormActions
 from .models import Appointment
-from .urls import urlpatterns
 
 
 class AppointmentForm(forms.ModelForm):
@@ -39,7 +38,7 @@ class AppointmentForm(forms.ModelForm):
             'pet_description': forms.Textarea(),
             'visit_description': forms.Textarea(),
             'visit_schedule': DateTimePicker(options={
-                'format': 'YYYY-MM-DD h:mm a',
+                'format': 'MM/DD/YYYY h:mm a',
                 'pickSeconds': False
             }),
         }

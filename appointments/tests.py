@@ -94,6 +94,22 @@ class AddAppointmentPageTests(TestCase):
 
         self.assertEqual(len(AppointmentForm.helper.layout[index]), 3)
 
-    def test_appointment_model_uses_regex_validator(self):
-        model = Appointment()
-        self.assertTrue(type(model.without_special_chars) is RegexValidator)
+    def test_appointment_model_uses_regex_validator_for_pet_description_field(self):
+        index = 0
+        validator_list = Appointment._meta.get_field('pet_description').validators
+        for i, validator in enumerate(validator_list):
+            if (type(validator) is RegexValidator):
+                index = i
+                break
+
+        self.assertTrue(type(validator_list[index]) is RegexValidator)
+
+    def test_appointment_model_uses_regex_validator_for_visit_description_field(self):
+        index = 0
+        validator_list = Appointment._meta.get_field('visit_description').validators
+        for i, validator in enumerate(validator_list):
+            if (type(validator) is RegexValidator):
+                index = i
+                break
+
+        self.assertTrue(type(validator_list[index]) is RegexValidator)
