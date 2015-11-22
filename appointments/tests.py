@@ -5,6 +5,7 @@ from .models import Customer
 from .models import Appointment
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.layout import Submit, Reset, HTML
+from django.core.validators import RegexValidator
 
 
 class AddAppointmentPageTests(TestCase):
@@ -92,3 +93,7 @@ class AddAppointmentPageTests(TestCase):
                 self.fail("Unrecognized Layout Object")
 
         self.assertEqual(len(AppointmentForm.helper.layout[index]), 3)
+
+    def test_appointment_model_uses_regex_validator(self):
+        model = Appointment()
+        self.assertTrue(type(model.without_special_chars) is RegexValidator)

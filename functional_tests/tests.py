@@ -87,7 +87,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, '/appointments/add/'))
 
     def test_pet_description_field_length_constraint(self):
-        sample_text = "Sample Text" * 50
+        sample_text = 'Sample Text' * 50
         submit_button = self.selenium.find_element_by_id('submit-id-submit')
         pet_description_field = self.selenium.find_element_by_id('id_pet_description')
 
@@ -100,4 +100,30 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         self.assertEqual(len(new_pet_description_field.get_attribute('value')), 500)
 
     def test_pet_description_field_format_constraint(self):
+        sample_text = 'Text with ; character'
+        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+        pet_description_field = self.selenium.find_element_by_id('id_pet_description')
+
+        ActionChains(self.selenium).send_keys_to_element(pet_description_field, sample_text).move_to_element(
+            submit_button).click(submit_button).perform()
+
+        new_pet_description_error = self.selenium.find_element_by_id('error_1_id_pet_description')
+
+        self.assertEqual(new_pet_description_error.find_element_by_tag_name('strong').text,
+                         'No Special Characters are allowed in this field')
+
+    def test_visit_description_field_length_constraint(self):
+        sample_text = 'Sample Text' * 50
+        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+        visit_description_field = self.selenium.find_element_by_id('id_visit_description')
+
+        ActionChains(self.selenium).send_keys_to_element(visit_description_field, sample_text).move_to_element(
+            submit_button).click(submit_button).perform()
+
+        new_visit_description_field = self.selenium.find_element_by_id('id_visit_description')
+
+        self.assertTrue(len(sample_text) > 500)
+        self.assertEqual(len(new_visit_description_field.get_attribute('value')), 500)
+
+    def test_visit_description_field_format_constraint(self):
         self.fail('Finish the Tests')
