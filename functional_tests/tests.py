@@ -6,6 +6,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 class AddAppointmentTests(StaticLiveServerTestCase):
+
     @classmethod
     def setUpClass(cls):
         super(AddAppointmentTests, cls).setUpClass()
@@ -23,6 +24,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
 
     def test_add_appointment_page_is_accessible(self):
         self.assertIn('Add Appointment', self.selenium.title)
+        self.selenium.implicitly_wait(1)
 
     def test_appointment_input_fields_are_present(self):
         try:
@@ -55,4 +57,18 @@ class AddAppointmentTests(StaticLiveServerTestCase):
                          time.strftime("%Y-%m-%d %I:%M %p", time.strptime(selected_datetime, "%Y-%m-%d %I:%M %p")))
 
     def test_has_navigation_buttons(self):
+        try:
+            self.assertEqual(self.selenium.find_element_by_id('submit-id-submit').get_attribute('type'), 'submit')
+            self.assertEqual(self.selenium.find_element_by_id('reset-id-reset').get_attribute('type'), 'reset')
+            self.assertTrue(self.selenium.find_element_by_id('cancel-id-cancel').get_attribute('href') is not None)
+        except NoSuchElementException as e:
+            self.fail(e)
+
+    def test_navigation_buttons(self):
+        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+        ActionChains(self.selenium).move_to_element(submit_button).click(submit_button).perform()
+
+        self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, '/appointments/add/'))
+
+    def test_pet_description_field_length_constraint(self):
         self.fail('Finish the Tests')

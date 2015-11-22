@@ -27,7 +27,7 @@ class AppointmentForm(forms.ModelForm):
             Submit('submit', 'Schedule', css_class='btn btn-primary'),
             Reset('reset', 'Clear', css_class='btn btn-default'),
             HTML(
-                '<a name="cancel" value="Cancel" class="btn btn btn-default" href="{% url "add_appointment" %}">Cancel</a>')
+                '<a id="cancel-id-cancel" name="cancel" value="Cancel" class="btn btn btn-default" href="{% url "add_appointment" %}">Cancel</a>')
         )
     )
 
