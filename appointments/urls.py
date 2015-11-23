@@ -18,5 +18,6 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^add/$', 'appointments.views.add_appointment', name='add_appointment'),
+    url(r'^add/get_vet_email/$', 'appointments.views.retrieve_vet_email', name='get_vet_email'),
 ]
 

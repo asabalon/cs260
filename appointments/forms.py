@@ -41,4 +41,9 @@ class AppointmentForm(forms.ModelForm):
                 'format': 'MM/DD/YYYY h:mm a',
                 'pickSeconds': False
             }),
+            'veterinary_physician': forms.Select(
+                attrs={'onchange': "change_iframe_src(this.options[this.selectedIndex].value, $('#iframe_calendar'))"})
         }
+
+    class Media:
+        js = {'custom/js/form_event_actions.js'}
