@@ -33,11 +33,12 @@ def add_appointment(request):
     form = AppointmentForm(data=request.POST or None, initial={'pet_owner': customer, 'pet_owner_name': str(customer)})
 
     if (form.is_valid()):
+        success = True
         form.save()
     else:
-        pass
+        success = False
 
-    return render(request, 'add_appointment.html', {'form': form})
+    return render(request, 'add_appointment.html', {'form': form, 'success': success})
 
 
 def retrieve_vet_email(request):

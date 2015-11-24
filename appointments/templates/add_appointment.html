@@ -7,6 +7,11 @@ Add Appointment
 
 {% block page_panel %}
 <div class="col-xs-offset-3 col-xs-6">
+    {% if success %}
+    <div class="alert alert-success">Your request for an Appointment has been saved. Please wait for the Physician's
+        Confirmation via email.
+    </div>
+    {% endif %}
     {% crispy form %}
 </div>
 <div class="col-xs-offset-1 col-xs-10">

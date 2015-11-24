@@ -101,6 +101,8 @@ USE_L10N = True
 
 USE_TZ = True
 
+FORMAT_MODULE_PATH = 'cs260.formats'
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -115,5 +117,7 @@ STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static")
 
 # Crispy Forms Required Constants
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
+
+
 
 

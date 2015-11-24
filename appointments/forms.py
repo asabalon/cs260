@@ -1,4 +1,6 @@
 from django import forms
+from django.utils import timezone
+from datetime import timedelta
 from bootstrap3_datetime.widgets import DateTimePicker
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Submit, Reset, HTML
@@ -47,3 +49,9 @@ class AppointmentForm(forms.ModelForm):
 
     class Media:
         js = {'custom/js/form_event_actions.js'}
+
+    def clean_visit_schedule(self):
+        sent_datetime = self.cleaned_data['visit_schedule']
+        if (timezone.now() - sent_datetime) > timedelta(seconds=1):
+            raise forms.ValidationError("Cannot Schedule an Appointment at this Date and Time")
+        return sent_datetime

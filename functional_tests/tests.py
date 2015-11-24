@@ -198,3 +198,33 @@ class AddAppointmentTests(StaticLiveServerTestCase):
             self.assertTrue('display: none' not in element.get_attribute('style'))
         except TimeoutException as e:
             self.fail('Unable to Execute Test Properly')
+
+    def test_appointment_page_form_checking(self):
+        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+
+        ActionChains(self.selenium).move_to_element(submit_button).click(submit_button).perform()
+
+        try:
+            pet_description = WebDriverWait(self.selenium, 10).until(
+                EC.presence_of_element_located((By.ID, 'error_1_id_pet_description'))
+            )
+            visit_schedule = WebDriverWait(self.selenium, 10).until(
+                EC.presence_of_element_located((By.ID, 'error_1_id_visit_schedule'))
+            )
+            visit_description = WebDriverWait(self.selenium, 10).until(
+                EC.presence_of_element_located((By.ID, 'error_1_id_visit_description'))
+            )
+            veterinary_physician = WebDriverWait(self.selenium, 10).until(
+                EC.presence_of_element_located((By.ID, 'error_1_id_veterinary_physician'))
+            )
+
+            self.assertEqual(pet_description.find_element_by_tag_name('strong').text,
+                             'This field is required.')
+            self.assertEqual(visit_schedule.find_element_by_tag_name('strong').text,
+                             'This field is required.')
+            self.assertEqual(visit_description.find_element_by_tag_name('strong').text,
+                             'This field is required.')
+            self.assertEqual(veterinary_physician.find_element_by_tag_name('strong').text,
+                             'This field is required.')
+        except TimeoutException as e:
+            self.fail('Unable to Execute Test Properly')

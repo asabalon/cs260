@@ -1,8 +1,8 @@
+from datetime import datetime, timedelta
 from django.test import TestCase
-from django.forms import ModelForm, Select
+from django.forms import ModelForm
 from .forms import AppointmentForm
-from .models import Customer
-from .models import Appointment
+from .models import Customer, Appointment, VeterinaryPhysician
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.layout import Submit, Reset, HTML
 from django.core.validators import RegexValidator
@@ -112,3 +112,22 @@ class AddAppointmentPageTests(TestCase):
         form = AppointmentForm()
 
         self.assertTrue(form.Meta.widgets.get('veterinary_physician').attrs.get('onchange') is not None)
+
+    def test_appointment_page_has_succeess_variable_in_context(self):
+        customer = self.create_customer()
+        veterinary_physician = VeterinaryPhysician.objects.create()
+        veterinary_physician.first_name = 'My'
+        veterinary_physician.middle_name = 'First'
+        veterinary_physician.last_name = 'Veterinary Physician'
+        veterinary_physician.email_address = 'cs2602015project@gmail.com'
+        veterinary_physician.save()
+
+        current_datetime = format(datetime.now() + timedelta(hours=1), '%m/%d/%Y %I:%M %p').replace(' 0', ' ').lower()
+
+        response = self.goto_add_appointment_with_params(
+            {'pet_owner_name': str(customer), 'pet_owner': customer.id, 'pet_description': 'Siberian Husky',
+             'visit_schedule': current_datetime,
+             'visit_description': 'Checkup',
+             'veterinary_physician': veterinary_physician.id})
+
+        self.assertEqual(response.context['success'], True)
