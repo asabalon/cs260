@@ -10,9 +10,9 @@ from .models import VeterinaryPhysician
 def add_appointment(request):
     # No Login capabilities yet; Need to input id directly
     if (request.method == 'POST'):
-        pet_owner_id = request.POST.get('pet_owner_id')
+        pet_owner_id = request.POST.get('pet_owner')
     else:
-        pet_owner_id = request.GET.get('pet_owner_id')
+        pet_owner_id = request.GET.get('pet_owner')
 
     # Remove else after developing login features
     if (pet_owner_id):
@@ -37,8 +37,7 @@ def add_appointment(request):
     else:
         pass
 
-    return render(request, 'add_appointment.html',
-                  {'form': form, 'pet_owner_id': customer.id})
+    return render(request, 'add_appointment.html', {'form': form})
 
 
 def retrieve_vet_email(request):

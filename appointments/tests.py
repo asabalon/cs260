@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.forms import ModelForm
+from django.forms import ModelForm, Select
 from .forms import AppointmentForm
 from .models import Customer
 from .models import Appointment
@@ -56,16 +56,10 @@ class AddAppointmentPageTests(TestCase):
 
         self.assertTrue(customer_field)
 
-    def test_add_appointment_page_forwards_pet_owner_id_after_post(self):
-        customer = self.create_customer()
-
-        self.assertEqual(self.goto_add_appointment_with_params({'pet_owner_id': customer.id}).context['pet_owner_id'],
-                         customer.id)
-
     def test_add_appointment_form_contains_pet_owner_name_before_post(self):
         customer = self.create_customer()
 
-        form = self.client.get('/appointments/add/?pet_owner_id=%s' % (customer.id)).context['form']
+        form = self.client.get('/appointments/add/?pet_owner=%s' % (customer.id)).context['form']
 
         self.assertEqual(form['pet_owner_name'].value(), str(customer))
 
@@ -74,7 +68,7 @@ class AddAppointmentPageTests(TestCase):
 
         form = \
             self.goto_add_appointment_with_params(
-                {'pet_owner_name': str(customer), 'pet_owner_id': customer.id}).context[
+                {'pet_owner_name': str(customer), 'pet_owner': customer.id}).context[
                 'form']
 
         self.assertEqual(form['pet_owner_name'].value(), str(customer))
@@ -113,3 +107,8 @@ class AddAppointmentPageTests(TestCase):
                 break
 
         self.assertTrue(type(validator_list[index]) is RegexValidator)
+
+    def test_appointment_model_form_has_onchange_behavior_for_veterinary_physician(self):
+        form = AppointmentForm()
+
+        self.assertTrue(form.Meta.widgets.get('veterinary_physician').attrs.get('onchange') is not None)
