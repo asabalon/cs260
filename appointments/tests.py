@@ -137,3 +137,4 @@ class AddAppointmentPageTests(TestCase):
              'veterinary_physician': veterinary_physician.id})
 
         self.assertEqual(response.context['success'], True)
+        self.assertTrue(Appointment.objects.count() == 1)
