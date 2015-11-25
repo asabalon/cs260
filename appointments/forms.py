@@ -1,5 +1,5 @@
 from django import forms
-from django.utils import timezone
+from django.utils.timezone import localtime, now
 from datetime import timedelta
 from bootstrap3_datetime.widgets import DateTimePicker
 from crispy_forms.helper import FormHelper
@@ -52,6 +52,11 @@ class AppointmentForm(forms.ModelForm):
 
     def clean_visit_schedule(self):
         sent_datetime = self.cleaned_data['visit_schedule']
-        if (timezone.now() - sent_datetime) > timedelta(seconds=1):
+        current_datetime = localtime(now())
+        if (current_datetime - sent_datetime) > timedelta(seconds=1):
             raise forms.ValidationError("Cannot Schedule an Appointment at this Date and Time")
+        elif (sent_datetime - current_datetime) < timedelta(days=1):
+            raise forms.ValidationError("Kindly give use at least 24 hrs. lead time to schedule your appointment.")
+        else:
+            pass
         return sent_datetime

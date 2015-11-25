@@ -1,11 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.test import TestCase
-from django.forms import ModelForm
-from .forms import AppointmentForm
-from .models import Customer, Appointment, VeterinaryPhysician
+from django.forms import ModelForm, ValidationError
+from django.utils.timezone import localtime, now
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.layout import Submit, Reset, HTML
 from django.core.validators import RegexValidator
+from .forms import AppointmentForm
+from .models import Customer, Appointment, VeterinaryPhysician
 
 
 class AddAppointmentPageTests(TestCase):
@@ -29,6 +30,16 @@ class AddAppointmentPageTests(TestCase):
         customer.save()
 
         return customer
+
+    def create_veterinary_physician(self):
+        veterinary_physician = VeterinaryPhysician.objects.create()
+        veterinary_physician.first_name = 'My'
+        veterinary_physician.middle_name = 'First'
+        veterinary_physician.last_name = 'Veterinary Physician'
+        veterinary_physician.email_address = 'cs2602015project@gmail.com'
+        veterinary_physician.save()
+
+        return veterinary_physician
 
     def test_correct_uri_resolves_to_add_appointment_page(self):
         self.assertTemplateUsed(self.goto_add_appointment_wo_params(), 'add_appointment.html')
@@ -113,16 +124,11 @@ class AddAppointmentPageTests(TestCase):
 
         self.assertTrue(form.Meta.widgets.get('veterinary_physician').attrs.get('onchange') is not None)
 
-    def test_appointment_page_has_succeess_variable_in_context(self):
+    def test_appointment_page_has_success_variable_in_context(self):
         customer = self.create_customer()
-        veterinary_physician = VeterinaryPhysician.objects.create()
-        veterinary_physician.first_name = 'My'
-        veterinary_physician.middle_name = 'First'
-        veterinary_physician.last_name = 'Veterinary Physician'
-        veterinary_physician.email_address = 'cs2602015project@gmail.com'
-        veterinary_physician.save()
-
-        current_datetime = format(datetime.now() + timedelta(hours=1), '%m/%d/%Y %I:%M %p').replace(' 0', ' ').lower()
+        veterinary_physician = self.create_veterinary_physician()
+        current_datetime = format(localtime(now()) + timedelta(hours=25), '%m/%d/%Y %I:%M %p').replace(' 0',
+                                                                                                       ' ').lower()
 
         response = self.goto_add_appointment_with_params(
             {'pet_owner_name': str(customer), 'pet_owner': customer.id, 'pet_description': 'Siberian Husky',

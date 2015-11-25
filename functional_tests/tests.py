@@ -1,11 +1,13 @@
 import time
+from datetime import timedelta, datetime
+from django.utils.timezone import localtime, now
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import select, expected_conditions as EC
 
 
 class AddAppointmentTests(StaticLiveServerTestCase):
@@ -24,6 +26,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         self.selenium.implicitly_wait(5)
 
     # def tearDown(self):
+
     def test_add_appointment_page_is_accessible(self):
         self.assertIn('Add Appointment', self.selenium.title)
 
@@ -55,7 +58,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
             self.assertTrue('display: block' in element.get_attribute('style'))
 
             active_day = element.find_element_by_class_name('active')
-            ActionChains(self.selenium).move_to_element(active_day).click(active_day).perform()
+            ActionChains(self.selenium).click(active_day).perform()
             selected_datetime = self.selenium.find_element_by_id('id_visit_schedule').get_attribute('value')
 
             self.assertEqual(time.strftime('%m/%d/%Y %I: %p'),
@@ -98,8 +101,8 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         submit_button = self.selenium.find_element_by_id('submit-id-submit')
         pet_description_field = self.selenium.find_element_by_id('id_pet_description')
 
-        ActionChains(self.selenium).send_keys_to_element(pet_description_field, sample_text).move_to_element(
-            submit_button).click(submit_button).perform()
+        ActionChains(self.selenium).send_keys_to_element(pet_description_field, sample_text).click(
+            submit_button).perform()
 
         try:
             element = WebDriverWait(self.selenium, 10).until(
@@ -115,8 +118,8 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         submit_button = self.selenium.find_element_by_id('submit-id-submit')
         pet_description_field = self.selenium.find_element_by_id('id_pet_description')
 
-        ActionChains(self.selenium).send_keys_to_element(pet_description_field, sample_text).move_to_element(
-            submit_button).click(submit_button).perform()
+        ActionChains(self.selenium).send_keys_to_element(pet_description_field, sample_text).click(
+            submit_button).perform()
 
         try:
             element = WebDriverWait(self.selenium, 10).until(
@@ -132,8 +135,8 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         submit_button = self.selenium.find_element_by_id('submit-id-submit')
         visit_description_field = self.selenium.find_element_by_id('id_visit_description')
 
-        ActionChains(self.selenium).send_keys_to_element(visit_description_field, sample_text).move_to_element(
-            submit_button).click(submit_button).perform()
+        ActionChains(self.selenium).send_keys_to_element(visit_description_field, sample_text).click(
+            submit_button).perform()
 
         try:
             element = WebDriverWait(self.selenium, 10).until(
@@ -149,8 +152,8 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         submit_button = self.selenium.find_element_by_id('submit-id-submit')
         visit_description_field = self.selenium.find_element_by_id('id_visit_description')
 
-        ActionChains(self.selenium).send_keys_to_element(visit_description_field, sample_text).move_to_element(
-            submit_button).click(submit_button).perform()
+        ActionChains(self.selenium).send_keys_to_element(visit_description_field, sample_text).click(
+            submit_button).perform()
 
         try:
             element = WebDriverWait(self.selenium, 10).until(
@@ -161,34 +164,65 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         except TimeoutException as e:
             self.fail('Unable to Execute Test Properly')
 
-    def test_scheduled_visit_field_format_constraint(self):
+    def test_scheduled_visit_field_auto_completion_for_time(self):
         date_text = time.strftime('%Y/%m/%d')
         submit_button = self.selenium.find_element_by_id('submit-id-submit')
         visit_schedule_field = self.selenium.find_element_by_name('visit_schedule')
 
-        ActionChains(self.selenium).send_keys_to_element(visit_schedule_field, date_text).move_to_element(
-            submit_button).click(submit_button).perform()
+        ActionChains(self.selenium).send_keys_to_element(visit_schedule_field, date_text).click(submit_button).perform()
 
         try:
             element = WebDriverWait(self.selenium, 10).until(
                 EC.presence_of_element_located((By.ID, 'error_1_id_visit_schedule'))
             )
             self.assertEqual(element.find_element_by_tag_name('strong').text,
-                             'Enter a valid date/time.')
+                             'Cannot Schedule an Appointment at this Date and Time')
+        except TimeoutException as e:
+            self.fail('Unable to Execute Test Properly')
+
+    def test_scheduled_visit_field_auto_completion_for_date(self):
+        date_text = time.strftime('%I:%M %p')
+        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+        visit_schedule_field = self.selenium.find_element_by_name('visit_schedule')
+
+        ActionChains(self.selenium).send_keys_to_element(visit_schedule_field, date_text).click(submit_button).perform()
+
+        try:
+            element = WebDriverWait(self.selenium, 10).until(
+                EC.presence_of_element_located((By.ID, 'error_1_id_visit_schedule'))
+            )
+            self.assertEqual(element.find_element_by_tag_name('strong').text,
+                             'Cannot Schedule an Appointment at this Date and Time')
+        except TimeoutException as e:
+            self.fail('Unable to Execute Test Properly')
+
+    def test_scheduled_visit_field_lead_time_validation(self):
+        date_text = format(localtime(now()) + timedelta(hours=1), '%m/%d/%Y %I:%M %p')
+        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+        visit_schedule_field = self.selenium.find_element_by_name('visit_schedule')
+
+        ActionChains(self.selenium).send_keys_to_element(visit_schedule_field, date_text).click(submit_button).perform()
+
+        try:
+            element = WebDriverWait(self.selenium, 10).until(
+                EC.presence_of_element_located((By.ID, 'error_1_id_visit_schedule'))
+            )
+            self.assertEqual(element.find_element_by_tag_name('strong').text,
+                             'Kindly give use at least 24 hrs. lead time to schedule your appointment.')
         except TimeoutException as e:
             self.fail('Unable to Execute Test Properly')
 
     def test_veterinary_physician_field_behavior(self):
         index = 0
-        veterinary_physician_field = self.selenium.find_element_by_id('id_veterinary_physician')
-        option_fields = veterinary_physician_field.find_elements_by_tag_name('option')
+        veterinary_physician = self.selenium.find_element_by_id('id_veterinary_physician')
+        option_fields = veterinary_physician.find_elements_by_tag_name('option')
 
         for i, option in enumerate(option_fields):
             if (not option.get_attribute('selected')):
                 index = i
 
-        ActionChains(self.selenium).move_to_element(veterinary_physician_field).click(
-            veterinary_physician_field).move_to_element(option_fields[index]).click(option_fields[index]).perform()
+        select_box = select.Select(veterinary_physician)
+        select_box.select_by_value(option_fields[index].get_attribute('value'))
 
         try:
             element = WebDriverWait(self.selenium, 10).until(
@@ -200,21 +234,22 @@ class AddAppointmentTests(StaticLiveServerTestCase):
             self.fail('Unable to Execute Test Properly')
 
     def test_appointment_page_form_checking(self):
+        webDriverWait = WebDriverWait(self.selenium, 10)
         submit_button = self.selenium.find_element_by_id('submit-id-submit')
 
-        ActionChains(self.selenium).move_to_element(submit_button).click(submit_button).perform()
+        ActionChains(self.selenium).click(submit_button).perform()
 
         try:
-            pet_description = WebDriverWait(self.selenium, 10).until(
+            pet_description = webDriverWait.until(
                 EC.presence_of_element_located((By.ID, 'error_1_id_pet_description'))
             )
-            visit_schedule = WebDriverWait(self.selenium, 10).until(
+            visit_schedule = webDriverWait.until(
                 EC.presence_of_element_located((By.ID, 'error_1_id_visit_schedule'))
             )
-            visit_description = WebDriverWait(self.selenium, 10).until(
+            visit_description = webDriverWait.until(
                 EC.presence_of_element_located((By.ID, 'error_1_id_visit_description'))
             )
-            veterinary_physician = WebDriverWait(self.selenium, 10).until(
+            veterinary_physician = webDriverWait.until(
                 EC.presence_of_element_located((By.ID, 'error_1_id_veterinary_physician'))
             )
 
@@ -226,5 +261,42 @@ class AddAppointmentTests(StaticLiveServerTestCase):
                              'This field is required.')
             self.assertEqual(veterinary_physician.find_element_by_tag_name('strong').text,
                              'This field is required.')
+        except TimeoutException as e:
+            self.fail('Unable to Execute Test Properly')
+
+    def test_successful_appointment_scheduling(self):
+        webDriverWait = WebDriverWait(self.selenium, 10)
+
+        try:
+            index = 0
+            submit_button = self.selenium.find_element_by_id('submit-id-submit')
+            pet_description = self.selenium.find_element_by_id('id_pet_description')
+            visit_schedule = self.selenium.find_element_by_id('id_visit_schedule')
+            visit_description = self.selenium.find_element_by_id('id_visit_description')
+            veterinary_physician = self.selenium.find_element_by_id('id_veterinary_physician')
+            option_fields = veterinary_physician.find_elements_by_tag_name('option')
+
+            for i, option in enumerate(option_fields):
+                if (option.get_attribute('selected') is None):
+                    index = i
+
+            select_box = select.Select(veterinary_physician)
+            select_box.select_by_value(option_fields[index].get_attribute('value'))
+
+            current_datetime = format(datetime.now() + timedelta(hours=25), '%m/%d/%Y %I:%M %p')
+
+            actions = ActionChains(self.selenium)
+            actions.send_keys_to_element(pet_description, 'Siberian Husky')
+            actions.send_keys_to_element(visit_schedule, current_datetime)
+            actions.send_keys_to_element(visit_description, 'Checkup')
+            actions.click(submit_button)
+            actions.perform()
+
+            element = webDriverWait.until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
+            )
+            self.assertEqual(element.text,
+                             'Your request for an Appointment has been saved. Please wait for the Physician\'s Confirmation via email.')
+
         except TimeoutException as e:
             self.fail('Unable to Execute Test Properly')

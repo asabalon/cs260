@@ -35,6 +35,7 @@ def add_appointment(request):
     if (form.is_valid()):
         success = True
         form.save()
+        form = AppointmentForm(initial={'pet_owner': customer, 'pet_owner_name': str(customer)})
     else:
         success = False
 
