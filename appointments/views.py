@@ -1,5 +1,6 @@
-from django.shortcuts import render
-from django.http import JsonResponse
+from django.shortcuts import render, render_to_response
+from django.contrib.auth import authenticate, login
+from django.http import JsonResponse, HttpResponseRedirect
 from .forms import AppointmentForm
 from .models import Pet, Appointment, Customer, VeterinaryPhysician
 
@@ -8,7 +9,7 @@ from .models import Pet, Appointment, Customer, VeterinaryPhysician
 
 def add_appointment(request):
     # No Login capabilities yet; Need to input id directly
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         pet_owner_id = request.POST.get('pet_owner')
     else:
         pet_owner_id = request.GET.get('pet_owner')
@@ -23,7 +24,7 @@ def add_appointment(request):
     form = AppointmentForm(data=request.POST or None, initial={'pet_owner': customer, 'pet_owner_name': str(customer)})
     form.fields['pet_name'].queryset = Pet.objects.filter(owner_id=pet_owner_id)
 
-    if (form.is_valid()):
+    if form.is_valid():
         success = True
         form.save()
         form = AppointmentForm(initial={'pet_owner': customer, 'pet_owner_name': str(customer)})
@@ -34,7 +35,7 @@ def add_appointment(request):
 
 
 def retrieve_vet_email(request):
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         vet_id = request.POST.get('vet_id')
     else:
         vet_id = request.GET.get('vet_id')
@@ -45,7 +46,7 @@ def retrieve_vet_email(request):
 
 
 def view_appointments(request):
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         pet_owner_id = request.POST.get('pet_owner')
     else:
         pet_owner_id = request.GET.get('pet_owner')
@@ -56,7 +57,7 @@ def view_appointments(request):
 
 
 def create_test_pet(request):
-    if (request.method == 'GET'):
+    if request.method == 'GET':
         customer = Customer.objects.get(id=request.GET.get('owner'))
         pet = Pet.objects.create(
             name=request.GET.get('name'),
@@ -95,3 +96,25 @@ def create_test_veterinary_physician(request):
         return JsonResponse({'vet_id': veterinary_physician.id})
     else:
         return JsonResponse({'vet_id': None})
+
+
+def login_user(request):
+    state = "Please log in below..."
+    username = password = ''
+    if request.POST:
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                state = "You're successfully logged in!"
+                return HttpResponseRedirect(request.META.get('HTTP_REFERRER', '../add'))
+            else:
+                state = "Your account is not active, please contact the site admin."
+        else:
+            state = "Your username and/or password were incorrect."
+
+    return render_to_response('auth.html', {'state': state, 'username': username})
+

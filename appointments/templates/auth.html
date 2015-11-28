@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}
+Login
+{% endblock %}
+
+{% block page_panel %}
+    <div class="container">
+    {{ state }}
+      <form class="form-signin" action="../login/" method="post">
+        <h2 class="form-signin-heading">Please sign in</h2>
+
+        {% if next %}
+		<input type="hidden" name="next" value="{{ next }}" />
+		{% endif %}
+
+        <label for="inputUsername" class="sr-only">Username</label>
+        <input type="text" id="inputUsername" name="username" class="form-control" placeholder="UserName" required="" autofocus="" value="{{ username}}">
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" value="" required="">
+        {% comment %}<div class="checkbox">
+          <label>
+            <input type="checkbox" value="remember-me"> Remember me
+          </label>
+        </div>{% endcomment %}
+          <br>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+
+    </div>
+{% endblock %}

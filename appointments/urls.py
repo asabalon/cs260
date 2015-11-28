@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^add/create_test_vet/$', 'appointments.views.create_test_veterinary_physician', name='create_test_vet'),
     url(r'^add/create_test_customer/$', 'appointments.views.create_test_customer', name='create_test_customer'),
     url(r'^view/$', 'appointments.views.view_appointments', name='view_appointments'),
+    url(r'^login/$', 'appointments.views.login_user', name='login'),
 ]
 
