@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.core.urlresolvers import reverse_lazy
 
 urlpatterns = [
     url(r'^add/$', 'appointments.views.add_appointment', name='add_appointment'),
@@ -24,5 +25,6 @@ urlpatterns = [
     url(r'^add/create_test_customer/$', 'appointments.views.create_test_customer', name='create_test_customer'),
     url(r'^view/$', 'appointments.views.view_appointments', name='view_appointments'),
     url(r'^login/$', 'appointments.views.login_user', name='login'),
+    url(r'^logout/$', 'django.contrib.auth.views.logout', {"next_page": reverse_lazy('login')}, name="logout"),
 ]
 

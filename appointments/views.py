@@ -1,12 +1,14 @@
 from django.shortcuts import render, render_to_response
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse, HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
 from .forms import AppointmentForm
 from .models import Pet, Appointment, Customer, VeterinaryPhysician
 
 
 # Create your views here.
 
+@login_required(login_url='../login')
 def add_appointment(request):
     # No Login capabilities yet; Need to input id directly
     if request.method == 'POST':
@@ -34,6 +36,7 @@ def add_appointment(request):
     return render(request, 'add_appointment.html', {'form': form, 'success': success})
 
 
+@login_required(login_url='../login')
 def retrieve_vet_email(request):
     if request.method == 'POST':
         vet_id = request.POST.get('vet_id')
@@ -45,6 +48,7 @@ def retrieve_vet_email(request):
     return JsonResponse({'vet_email': selected_vet.email_address})
 
 
+@login_required(login_url='../login')
 def view_appointments(request):
     if request.method == 'POST':
         pet_owner_id = request.POST.get('pet_owner')
@@ -56,6 +60,7 @@ def view_appointments(request):
     return render(request, 'view_appointments.html', {'appointments': appointments})
 
 
+@login_required(login_url='../login')
 def create_test_pet(request):
     if request.method == 'GET':
         customer = Customer.objects.get(id=request.GET.get('owner'))
@@ -71,6 +76,7 @@ def create_test_pet(request):
         return JsonResponse({'pet_id': None})
 
 
+@login_required(login_url='../login')
 def create_test_customer(request):
     if (request.method == 'GET'):
         customer = Customer.objects.create(
@@ -84,6 +90,7 @@ def create_test_customer(request):
         return JsonResponse({'pet_owner_id': None})
 
 
+@login_required(login_url='../login')
 def create_test_veterinary_physician(request):
     if (request.method == 'GET'):
         veterinary_physician = VeterinaryPhysician.objects.create(
