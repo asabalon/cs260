@@ -5,7 +5,7 @@ from bootstrap3_datetime.widgets import DateTimePicker
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Submit, Reset, HTML
 from crispy_forms.bootstrap import FormActions
-from .models import Appointment
+from .models import Pet, Appointment
 
 
 class AppointmentForm(forms.ModelForm):
@@ -18,6 +18,7 @@ class AppointmentForm(forms.ModelForm):
         Fieldset(
             'Schedule an Appointment',
             'pet_owner_name',
+            'pet_name',
             'pet_owner',
             'pet_description',
             'visit_schedule',
@@ -34,7 +35,8 @@ class AppointmentForm(forms.ModelForm):
 
     class Meta:
         model = Appointment
-        fields = ['pet_owner', 'pet_description', 'visit_schedule', 'visit_description', 'veterinary_physician']
+        fields = ['pet_owner', 'pet_name', 'pet_description', 'visit_schedule', 'visit_description',
+                  'veterinary_physician']
         widgets = {
             'pet_owner': forms.HiddenInput(attrs={'name': 'pet_owner_id'}),
             'pet_description': forms.Textarea(),

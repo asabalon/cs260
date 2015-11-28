@@ -19,5 +19,9 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^add/$', 'appointments.views.add_appointment', name='add_appointment'),
     url(r'^add/get_vet_email/$', 'appointments.views.retrieve_vet_email', name='get_vet_email'),
+    url(r'^add/create_test_pet/$', 'appointments.views.create_test_pet', name='create_test_pet'),
+    url(r'^add/create_test_vet/$', 'appointments.views.create_test_veterinary_physician', name='create_test_vet'),
+    url(r'^add/create_test_customer/$', 'appointments.views.create_test_customer', name='create_test_customer'),
+    url(r'^view/$', 'appointments.views.view_appointments', name='view_appointments'),
 ]
 
