@@ -1,20 +1,30 @@
 import time, json
+from contextlib import contextmanager
 from datetime import timedelta, datetime
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import Client
 from django.utils.timezone import localtime, now
+from django.contrib.auth.models import User
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from selenium.webdriver.firefox.webdriver import WebDriver
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support import select, expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 class AddAppointmentTests(StaticLiveServerTestCase):
+    @contextmanager
+    def wait_for_page_load(self, timeout=10):
+        old_page = self.selenium.find_element_by_tag_name('html')
+        yield
+        WebDriverWait(self.selenium, timeout).until(
+            EC.staleness_of(old_page)
+        )
+
     @classmethod
     def setUpClass(cls):
         super(AddAppointmentTests, cls).setUpClass()
@@ -26,6 +36,28 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         super(AddAppointmentTests, cls).tearDownClass()
 
     def setUp(self):
+<<<<<<< HEAD:functional_tests/tests.py
+        # No Registration Page Yet; Need to create User Manually
+        user = User.objects.create_user('temp', 'temporary@gmail.com', 'secret')
+        user.save()
+
+        self.selenium.get('%s%s' % (self.live_server_url, '/appointments/login/'))
+
+        with self.wait_for_page_load():
+            login_button = self.selenium.find_element_by_class_name('btn-primary')
+            username_field = self.selenium.find_element_by_id('inputUsername')
+            password_field = self.selenium.find_element_by_id('inputPassword')
+
+            ActionChains(self.selenium).send_keys_to_element(username_field, 'temp').send_keys_to_element(
+                password_field, 'secret').click(login_button).perform()
+
+        with self.wait_for_page_load():
+            self.selenium.get('%s%s' % (self.live_server_url, '/appointments/add/'))
+
+    def tearDown(self):
+        with self.wait_for_page_load():
+            self.selenium.get('%s%s' % (self.live_server_url, '/appointments/logout/'))
+=======
         self.c = Client()
         self.user = User.objects.create_user(username="admin", email="admin@admin.com", password="admin")
         self.c.login(username='admin', password='admin')
@@ -35,30 +67,26 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         self.selenium.find_element_by_name('password').send_keys('admin')
         self.selenium.find_element_by_name('btn_submit').click()
         self.selenium.implicitly_wait(10)
+>>>>>>> e54a65f607c8aba6761c79b42848979cbd12401b:functional_tests/tests_add_appointment.py
 
     def create_test_data(self):
         pet_params = '?name=Doggy&breed=Pug&age=1&owner='
         customer_params = '?first_name=My&middle_name=First&last_name=Customer'
         veterinary_physician_params = '?first_name=Dr&middle_name=Veterinary&last_name=Physician&email=cs2602015project@gmail.com'
 
-        try:
+        with self.wait_for_page_load():
             self.selenium.get(
                 '%s%s%s' % (self.live_server_url, '/appointments/add/create_test_vet/', veterinary_physician_params))
+        with self.wait_for_page_load():
             self.selenium.get(
                 '%s%s%s' % (self.live_server_url, '/appointments/add/create_test_customer/', customer_params))
-
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, 'pre'))
-            )
-
-            response = json.loads(element.text)
-
+        with self.wait_for_page_load():
+            response = json.loads(self.selenium.find_element_by_tag_name('pre').text)
             self.selenium.get('%s%s%s%s' % (
                 self.live_server_url, '/appointments/add/create_test_pet/', pet_params, response['pet_owner_id']))
+        with self.wait_for_page_load():
             self.selenium.get(
                 '%s%s%s' % (self.live_server_url, '/appointments/add/?pet_owner=', response['pet_owner_id']))
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
 
     def test_add_appointment_page_is_accessible(self):
         response = self.c.get(reverse('add_appointment'))
@@ -77,7 +105,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
 
     def test_pet_owner_field_is_prefilled(self):
         self.create_test_data()
-        # No Login capabilities yet; Assume name comes from Database
+        # Assume name comes from Database
         self.assertEqual(
             self.selenium.find_element_by_id('id_pet_owner_name').get_attribute('value'), 'Customer, My First')
         self.assertTrue(self.selenium.find_element_by_id('id_pet_owner_name').get_attribute('readonly'))
@@ -118,11 +146,11 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, '/appointments/add/'))
 
     def test_clear_button_clears_input_(self):
-        cancel_button = self.selenium.find_element_by_id('reset-id-reset')
+        clear_button = self.selenium.find_element_by_id('reset-id-reset')
         pet_description_field = self.selenium.find_element_by_id('id_pet_description')
 
         ActionChains(self.selenium).send_keys_to_element(pet_description_field, 'Test Text').click(
-            cancel_button).perform()
+            clear_button).perform()
 
         self.assertEqual(pet_description_field.get_attribute('value'), '')
 
@@ -202,8 +230,8 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         except TimeoutException as e:
             self.fail('Unable to Execute Test Properly')
 
-    def test_scheduled_visit_field_format_completion_for_time(self):
-        date_text = format(datetime.now() + timedelta(hours=25), '%I:%M %p')
+    def test_scheduled_visit_field_past_time_validation(self):
+        date_text = format(datetime.now() - timedelta(hours=1), '%m/%d/%Y %I:%M %p')
         submit_button = self.selenium.find_element_by_id('submit-id-submit')
         visit_schedule_field = self.selenium.find_element_by_name('visit_schedule')
 
@@ -215,22 +243,6 @@ class AddAppointmentTests(StaticLiveServerTestCase):
             )
             self.assertEqual(element.find_element_by_tag_name('strong').text,
                              'Cannot Schedule an Appointment at this Date and Time')
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
-
-    def test_scheduled_visit_field_format_completion_for_date(self):
-        date_text = format(datetime.now() + timedelta(hours=25), '%m/%d/%Y')
-        submit_button = self.selenium.find_element_by_id('submit-id-submit')
-        visit_schedule_field = self.selenium.find_element_by_name('visit_schedule')
-
-        ActionChains(self.selenium).send_keys_to_element(visit_schedule_field, date_text).click(submit_button).perform()
-
-        try:
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.presence_of_element_located((By.ID, 'error_1_id_visit_schedule'))
-            )
-            self.assertEqual(element.find_element_by_tag_name('strong').text,
-                             'Kindly give use at least 24 hrs. lead time to schedule your appointment.')
         except TimeoutException as e:
             self.fail('Unable to Execute Test Properly')
 
