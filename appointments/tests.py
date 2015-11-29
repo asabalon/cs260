@@ -5,11 +5,30 @@ from django.utils.timezone import localtime, now
 from crispy_forms.bootstrap import FormActions
 from crispy_forms.layout import Submit, Reset, HTML
 from django.core.validators import RegexValidator
+from django.contrib.auth.models import User
+from django.test import Client
 from .forms import AppointmentForm
 from .models import Pet, Customer, Appointment, VeterinaryPhysician
 
 
 class AddAppointmentPageTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(AddAppointmentPageTests, cls).setUpClass()
+        cls.client = Client()
+        user = User.objects.create_user('temp', 'temporary@gmail.com', 'secret')
+        user.save()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(AddAppointmentPageTests, cls).tearDownClass()
+
+    def setUp(self):
+        self.client.login(username='temp', password='secret')
+
+    def tearDown(self):
+        pass
+
     def goto_add_appointment_with_params(self, dictionary):
         return self.client.post(
             '/appointments/add/',
