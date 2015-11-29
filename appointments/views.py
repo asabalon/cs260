@@ -8,7 +8,7 @@ from .models import Pet, Appointment, Customer, VeterinaryPhysician
 
 # Create your views here.
 
-@login_required(login_url='../login')
+@login_required(login_url='../login', redirect_field_name=None)
 def add_appointment(request):
     # No Login capabilities yet; Need to input id directly
     if request.method == 'POST':
@@ -106,7 +106,7 @@ def create_test_veterinary_physician(request):
 
 
 def login_user(request):
-    state = "Please log in below..."
+    state = ""
     username = password = ''
     if request.POST:
         username = request.POST.get('username')
@@ -121,7 +121,7 @@ def login_user(request):
             else:
                 state = "Your account is not active, please contact the site admin."
         else:
-            state = "Your username and/or password were incorrect."
+            state = "Username/Password is incorrect"
 
     return render_to_response('auth.html', {'state': state, 'username': username})
 

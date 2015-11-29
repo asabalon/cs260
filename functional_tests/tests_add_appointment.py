@@ -1,5 +1,9 @@
 import time, json
 from datetime import timedelta, datetime
+
+from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
+from django.test import Client
 from django.utils.timezone import localtime, now
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.webdriver.firefox.webdriver import WebDriver
@@ -22,10 +26,15 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         super(AddAppointmentTests, cls).tearDownClass()
 
     def setUp(self):
-        self.selenium.get('%s%s' % (self.live_server_url, '/appointments/add/'))
-        self.selenium.implicitly_wait(3)
+        self.c = Client()
+        self.user = User.objects.create_user(username="admin", email="admin@admin.com", password="admin")
+        self.c.login(username='admin', password='admin')
 
-    # def tearDown(self):
+        self.selenium.get('%s%s' % (self.live_server_url, '/appointments/login/'))
+        self.selenium.find_element_by_name('username').send_keys('admin')
+        self.selenium.find_element_by_name('password').send_keys('admin')
+        self.selenium.find_element_by_name('btn_submit').click()
+        self.selenium.implicitly_wait(10)
 
     def create_test_data(self):
         pet_params = '?name=Doggy&breed=Pug&age=1&owner='
@@ -52,7 +61,8 @@ class AddAppointmentTests(StaticLiveServerTestCase):
             self.fail('Unable to Execute Test Properly')
 
     def test_add_appointment_page_is_accessible(self):
-        self.assertIn('Add Appointment', self.selenium.title)
+        response = self.c.get(reverse('add_appointment'))
+        self.assertEqual(response.status_code, 200)
 
     def test_appointment_input_fields_are_present(self):
         try:
