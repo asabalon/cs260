@@ -1,6 +1,10 @@
 import time, json
 from contextlib import contextmanager
 from datetime import timedelta, datetime
+
+from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
+from django.test import Client
 from django.utils.timezone import localtime, now
 from django.contrib.auth.models import User
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -32,6 +36,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         super(AddAppointmentTests, cls).tearDownClass()
 
     def setUp(self):
+<<<<<<< HEAD:functional_tests/tests.py
         # No Registration Page Yet; Need to create User Manually
         user = User.objects.create_user('temp', 'temporary@gmail.com', 'secret')
         user.save()
@@ -52,6 +57,17 @@ class AddAppointmentTests(StaticLiveServerTestCase):
     def tearDown(self):
         with self.wait_for_page_load():
             self.selenium.get('%s%s' % (self.live_server_url, '/appointments/logout/'))
+=======
+        self.c = Client()
+        self.user = User.objects.create_user(username="admin", email="admin@admin.com", password="admin")
+        self.c.login(username='admin', password='admin')
+
+        self.selenium.get('%s%s' % (self.live_server_url, '/appointments/login/'))
+        self.selenium.find_element_by_name('username').send_keys('admin')
+        self.selenium.find_element_by_name('password').send_keys('admin')
+        self.selenium.find_element_by_name('btn_submit').click()
+        self.selenium.implicitly_wait(10)
+>>>>>>> e54a65f607c8aba6761c79b42848979cbd12401b:functional_tests/tests_add_appointment.py
 
     def create_test_data(self):
         pet_params = '?name=Doggy&breed=Pug&age=1&owner='
@@ -73,7 +89,8 @@ class AddAppointmentTests(StaticLiveServerTestCase):
                 '%s%s%s' % (self.live_server_url, '/appointments/add/?pet_owner=', response['pet_owner_id']))
 
     def test_add_appointment_page_is_accessible(self):
-        self.assertIn('Add Appointment', self.selenium.title)
+        response = self.c.get(reverse('add_appointment'))
+        self.assertEqual(response.status_code, 200)
 
     def test_appointment_input_fields_are_present(self):
         try:
