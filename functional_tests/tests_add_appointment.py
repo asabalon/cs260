@@ -1,364 +1,207 @@
-import time, json
-from contextlib import contextmanager
-from datetime import timedelta, datetime
-
-from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
-from django.test import Client
+from datetime import timedelta
+from django.test import TestCase
+from django.forms import ModelForm, ValidationError
 from django.utils.timezone import localtime, now
+from crispy_forms.bootstrap import FormActions
+from crispy_forms.layout import Submit, Reset, HTML
+from django.core.validators import RegexValidator
 from django.contrib.auth.models import User
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.firefox.webdriver import WebDriver
-from selenium.webdriver.support import select, expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+from django.test import Client
+from appointments.forms import AppointmentForm
+from appointments.models import Pet, Customer, Appointment, VeterinaryPhysician
 
 
-class AddAppointmentTests(StaticLiveServerTestCase):
-    @contextmanager
-    def wait_for_page_load(self, timeout=10):
-        old_page = self.selenium.find_element_by_tag_name('html')
-        yield
-        WebDriverWait(self.selenium, timeout).until(
-            EC.staleness_of(old_page)
-        )
-
+class AddAppointmentPageTests(TestCase):
     @classmethod
     def setUpClass(cls):
-        super(AddAppointmentTests, cls).setUpClass()
-        cls.selenium = WebDriver()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.selenium.quit()
-        super(AddAppointmentTests, cls).tearDownClass()
-
-    def setUp(self):
-<<<<<<< HEAD:functional_tests/tests.py
-        # No Registration Page Yet; Need to create User Manually
+        super(AddAppointmentPageTests, cls).setUpClass()
+        cls.client = Client()
         user = User.objects.create_user('temp', 'temporary@gmail.com', 'secret')
         user.save()
 
-        self.selenium.get('%s%s' % (self.live_server_url, '/appointments/login/'))
+    @classmethod
+    def tearDownClass(cls):
+        super(AddAppointmentPageTests, cls).tearDownClass()
 
-        with self.wait_for_page_load():
-            login_button = self.selenium.find_element_by_class_name('btn-primary')
-            username_field = self.selenium.find_element_by_id('inputUsername')
-            password_field = self.selenium.find_element_by_id('inputPassword')
-
-            ActionChains(self.selenium).send_keys_to_element(username_field, 'temp').send_keys_to_element(
-                password_field, 'secret').click(login_button).perform()
-
-        with self.wait_for_page_load():
-            self.selenium.get('%s%s' % (self.live_server_url, '/appointments/add/'))
+    def setUp(self):
+        self.client.login(username='temp', password='secret')
 
     def tearDown(self):
-        with self.wait_for_page_load():
-            self.selenium.get('%s%s' % (self.live_server_url, '/appointments/logout/'))
-=======
-        self.c = Client()
-        self.user = User.objects.create_user(username="admin", email="admin@admin.com", password="admin")
-        self.c.login(username='admin', password='admin')
+        pass
 
-        self.selenium.get('%s%s' % (self.live_server_url, '/appointments/login/'))
-        self.selenium.find_element_by_name('username').send_keys('admin')
-        self.selenium.find_element_by_name('password').send_keys('admin')
-        self.selenium.find_element_by_name('btn_submit').click()
-        self.selenium.implicitly_wait(10)
->>>>>>> e54a65f607c8aba6761c79b42848979cbd12401b:functional_tests/tests_add_appointment.py
+    def goto_add_appointment_with_params(self, dictionary):
+        return self.client.post(
+            '/appointments/add/',
+            dictionary,
+        )
 
-    def create_test_data(self):
-        pet_params = '?name=Doggy&breed=Pug&age=1&owner='
-        customer_params = '?first_name=My&middle_name=First&last_name=Customer'
-        veterinary_physician_params = '?first_name=Dr&middle_name=Veterinary&last_name=Physician&email=cs2602015project@gmail.com'
+    def create_pet(self, customer):
+        pet = Pet.objects.create(
+            name='Doggy',
+            breed='Siberian Husky',
+            owner=customer,
+            age_in_months=1,
+        )
+        pet.save()
 
-        with self.wait_for_page_load():
-            self.selenium.get(
-                '%s%s%s' % (self.live_server_url, '/appointments/add/create_test_vet/', veterinary_physician_params))
-        with self.wait_for_page_load():
-            self.selenium.get(
-                '%s%s%s' % (self.live_server_url, '/appointments/add/create_test_customer/', customer_params))
-        with self.wait_for_page_load():
-            response = json.loads(self.selenium.find_element_by_tag_name('pre').text)
-            self.selenium.get('%s%s%s%s' % (
-                self.live_server_url, '/appointments/add/create_test_pet/', pet_params, response['pet_owner_id']))
-        with self.wait_for_page_load():
-            self.selenium.get(
-                '%s%s%s' % (self.live_server_url, '/appointments/add/?pet_owner=', response['pet_owner_id']))
+        return pet
 
-    def test_add_appointment_page_is_accessible(self):
-        response = self.c.get(reverse('add_appointment'))
-        self.assertEqual(response.status_code, 200)
+    def create_customer(self):
+        customer = Customer.objects.create(
+            first_name='My',
+            middle_name='First',
+            last_name='Customer',
+        )
+        customer.save()
 
-    def test_appointment_input_fields_are_present(self):
-        try:
-            self.assertEqual(self.selenium.find_element_by_id('id_pet_name').get_attribute('type'), 'select-one')
-            self.assertEqual(self.selenium.find_element_by_id('id_pet_description').get_attribute('type'), 'textarea')
-            self.assertEqual(self.selenium.find_element_by_id('id_visit_schedule').get_attribute('type'), 'text')
-            self.assertEqual(self.selenium.find_element_by_id('id_visit_description').get_attribute('type'), 'textarea')
-            self.assertEqual(self.selenium.find_element_by_id('id_veterinary_physician').get_attribute('type'),
-                             'select-one')
-        except NoSuchElementException as e:
-            self.fail(e)
+        return customer
 
-    def test_pet_owner_field_is_prefilled(self):
-        self.create_test_data()
-        # Assume name comes from Database
-        self.assertEqual(
-            self.selenium.find_element_by_id('id_pet_owner_name').get_attribute('value'), 'Customer, My First')
-        self.assertTrue(self.selenium.find_element_by_id('id_pet_owner_name').get_attribute('readonly'))
+    def create_veterinary_physician(self):
+        veterinary_physician = VeterinaryPhysician.objects.create(
+            first_name='My',
+            middle_name='First',
+            last_name='Veterinary Physician',
+            email_address='cs2602015project@gmail.com',
+        )
+        veterinary_physician.save()
 
-    def test_has_date_and_time_picker_widget(self):
-        datetime_picker_icon = self.selenium.find_element_by_class_name('glyphicon-calendar')
+        return veterinary_physician
 
-        ActionChains(self.selenium).click(datetime_picker_icon).perform()
+    def test_correct_uri_resolves_to_add_appointment_page(self):
+        customer = self.create_customer()
 
-        try:
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'bootstrap-datetimepicker-widget'))
-            )
-            self.assertTrue('display: block' in element.get_attribute('style'))
+        self.assertTemplateUsed(self.goto_add_appointment_with_params(
+            {'pet_owner_name': str(customer), 'pet_owner': customer.id}), 'add_appointment.html')
 
-            active_day = element.find_element_by_class_name('active')
-            ActionChains(self.selenium).click(active_day).perform()
-            selected_datetime = self.selenium.find_element_by_id('id_visit_schedule').get_attribute('value')
+    def test_add_appointment_page_has_form_in_context(self):
+        customer = self.create_customer()
 
-            self.assertEqual(time.strftime('%m/%d/%Y %I: %p'),
-                             time.strftime('%m/%d/%Y %I: %p', time.strptime(selected_datetime, '%m/%d/%Y %I:%M %p')))
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
+        self.assertTrue('form' in self.goto_add_appointment_with_params(
+            {'pet_owner_name': str(customer), 'pet_owner': customer.id}).context)
 
-    def test_has_navigation_buttons(self):
-        try:
-            self.assertEqual(self.selenium.find_element_by_id('submit-id-submit').get_attribute('type'), 'submit')
-            self.assertEqual(self.selenium.find_element_by_id('reset-id-reset').get_attribute('type'), 'reset')
-            self.assertTrue(self.selenium.find_element_by_id('cancel-id-cancel').get_attribute('href') is not None)
-        except NoSuchElementException as e:
-            self.fail(e)
+    def test_add_appointment_page_uses_appointment_form(self):
+        customer = self.create_customer()
 
-    def test_submit_button_redirects_to_add_appointment_page(self):
-        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+        self.assertTrue(type(self.goto_add_appointment_with_params(
+            {'pet_owner_name': str(customer), 'pet_owner': customer.id}).context['form']) is AppointmentForm)
 
-        ActionChains(self.selenium).click(submit_button).perform()
+    def test_add_appointment_form_is_a_model_form(self):
+        self.assertTrue(AppointmentForm.__base__ is ModelForm)
 
-        self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, '/appointments/add/'))
+    def test_appointment_form_uses_appointment_model(self):
+        self.assertTrue(AppointmentForm._meta.model is Appointment)
 
-    def test_clear_button_clears_input_(self):
-        clear_button = self.selenium.find_element_by_id('reset-id-reset')
-        pet_description_field = self.selenium.find_element_by_id('id_pet_description')
+    def test_appointment_model_refers_to_pet_model(self):
+        pet_field = None
 
-        ActionChains(self.selenium).send_keys_to_element(pet_description_field, 'Test Text').click(
-            clear_button).perform()
+        for field in Appointment._meta.get_fields():
+            if (field.related_model is Pet):
+                pet_field = field
+            else:
+                continue
 
-        self.assertEqual(pet_description_field.get_attribute('value'), '')
+        self.assertTrue(pet_field)
 
-    # No Homepage capabilities yet; Redirects to Add Appointment Page
-    def test_cancel_button_redirects_to_expected_page(self):
-        cancel_button = self.selenium.find_element_by_id('cancel-id-cancel')
+    def test_appointment_model_refers_to_customer_model(self):
+        customer_field = None
 
-        ActionChains(self.selenium).click(cancel_button).perform()
+        for field in Appointment._meta.get_fields():
+            if (field.related_model is Customer):
+                customer_field = field
+            else:
+                continue
 
-        self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, '/appointments/add/'))
+        self.assertTrue(customer_field)
 
-    def test_pet_description_field_length_constraint(self):
-        sample_text = 'Sample Text' * 50
-        submit_button = self.selenium.find_element_by_id('submit-id-submit')
-        pet_description_field = self.selenium.find_element_by_id('id_pet_description')
+    def test_appointment_model_refers_to_veterinary_physician_model(self):
+        veterinary_physician_field = None
 
-        ActionChains(self.selenium).send_keys_to_element(pet_description_field, sample_text).click(
-            submit_button).perform()
+        for field in Appointment._meta.get_fields():
+            if (field.related_model is VeterinaryPhysician):
+                veterinary_physician_field = field
+            else:
+                continue
 
-        try:
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.presence_of_element_located((By.ID, 'id_pet_description'))
-            )
-            self.assertTrue(len(sample_text) > 500)
-            self.assertEqual(len(element.get_attribute('value')), 500)
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
+        self.assertTrue(veterinary_physician_field)
 
-    def test_pet_description_field_format_constraint(self):
-        sample_text = 'Text with ; character'
-        submit_button = self.selenium.find_element_by_id('submit-id-submit')
-        pet_description_field = self.selenium.find_element_by_id('id_pet_description')
+    def test_add_appointment_form_contains_pet_owner_name_before_post(self):
+        customer = self.create_customer()
 
-        ActionChains(self.selenium).send_keys_to_element(pet_description_field, sample_text).click(
-            submit_button).perform()
+        form = self.client.get('/appointments/add/?pet_owner=%s' % (customer.id)).context['form']
 
-        try:
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.presence_of_element_located((By.ID, 'error_1_id_pet_description'))
-            )
-            self.assertEqual(element.find_element_by_tag_name('strong').text,
-                             'No Special Characters are allowed in this field')
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
+        self.assertEqual(form['pet_owner_name'].value(), str(customer))
 
-    def test_visit_description_field_length_constraint(self):
-        sample_text = 'Sample Text' * 50
-        submit_button = self.selenium.find_element_by_id('submit-id-submit')
-        visit_description_field = self.selenium.find_element_by_id('id_visit_description')
+    def test_add_appointment_page_contains_pet_owner_name_after_post(self):
+        customer = self.create_customer()
 
-        ActionChains(self.selenium).send_keys_to_element(visit_description_field, sample_text).click(
-            submit_button).perform()
+        form = \
+            self.goto_add_appointment_with_params(
+                {'pet_owner_name': str(customer), 'pet_owner': customer.id}).context[
+                'form']
 
-        try:
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.presence_of_element_located((By.ID, 'id_visit_description'))
-            )
-            self.assertTrue(len(sample_text) > 500)
-            self.assertEqual(len(element.get_attribute('value')), 500)
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
+        self.assertEqual(form['pet_owner_name'].value(), str(customer))
 
-    def test_visit_description_field_format_constraint(self):
-        sample_text = 'Text with ; character'
-        submit_button = self.selenium.find_element_by_id('submit-id-submit')
-        visit_description_field = self.selenium.find_element_by_id('id_visit_description')
-
-        ActionChains(self.selenium).send_keys_to_element(visit_description_field, sample_text).click(
-            submit_button).perform()
-
-        try:
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.presence_of_element_located((By.ID, 'error_1_id_visit_description'))
-            )
-            self.assertEqual(element.find_element_by_tag_name('strong').text,
-                             'No Special Characters are allowed in this field')
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
-
-    def test_scheduled_visit_field_past_time_validation(self):
-        date_text = format(datetime.now() - timedelta(hours=1), '%m/%d/%Y %I:%M %p')
-        submit_button = self.selenium.find_element_by_id('submit-id-submit')
-        visit_schedule_field = self.selenium.find_element_by_name('visit_schedule')
-
-        ActionChains(self.selenium).send_keys_to_element(visit_schedule_field, date_text).click(submit_button).perform()
-
-        try:
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.presence_of_element_located((By.ID, 'error_1_id_visit_schedule'))
-            )
-            self.assertEqual(element.find_element_by_tag_name('strong').text,
-                             'Cannot Schedule an Appointment at this Date and Time')
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
-
-    def test_scheduled_visit_field_lead_time_validation(self):
-        date_text = format(localtime(now()) + timedelta(hours=1), '%m/%d/%Y %I:%M %p')
-        submit_button = self.selenium.find_element_by_id('submit-id-submit')
-        visit_schedule_field = self.selenium.find_element_by_name('visit_schedule')
-
-        ActionChains(self.selenium).send_keys_to_element(visit_schedule_field, date_text).click(submit_button).perform()
-
-        try:
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.presence_of_element_located((By.ID, 'error_1_id_visit_schedule'))
-            )
-            self.assertEqual(element.find_element_by_tag_name('strong').text,
-                             'Kindly give use at least 24 hrs. lead time to schedule your appointment.')
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
-
-    def test_veterinary_physician_field_behavior(self):
-        self.create_test_data()
+    def test_form_helper_adds_necessary_buttons(self):
         index = 0
-        veterinary_physician = self.selenium.find_element_by_id('id_veterinary_physician')
-        option_fields = veterinary_physician.find_elements_by_tag_name('option')
-
-        for i, option in enumerate(option_fields):
-            if (not option.get_attribute('selected')):
+        for i, object in enumerate(AppointmentForm.helper.layout):
+            if (type(object) is FormActions):
                 index = i
+                break
 
-        select_box = select.Select(veterinary_physician)
-        select_box.select_by_value(option_fields[index].get_attribute('value'))
+        for button in AppointmentForm.helper.layout[index]:
+            if (type(button) is Submit or Reset or HTML):
+                continue
+            else:
+                self.fail("Unrecognized Layout Object")
 
-        try:
-            element = WebDriverWait(self.selenium, 10).until(
-                EC.visibility_of_element_located((By.ID, 'iframe_calendar'))
-            )
-            self.assertTrue(element.get_attribute('src') is not None)
-            self.assertTrue('display: none' not in element.get_attribute('style'))
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
+        self.assertEqual(len(AppointmentForm.helper.layout[index]), 3)
 
-    def test_appointment_page_form_checking(self):
-        webDriverWait = WebDriverWait(self.selenium, 10)
-        submit_button = self.selenium.find_element_by_id('submit-id-submit')
+    def test_appointment_model_uses_regex_validator_for_pet_description_field(self):
+        index = 0
+        validator_list = Appointment._meta.get_field('pet_description').validators
+        for i, validator in enumerate(validator_list):
+            if (type(validator) is RegexValidator):
+                index = i
+                break
 
-        ActionChains(self.selenium).click(submit_button).perform()
+        self.assertTrue(type(validator_list[index]) is RegexValidator)
 
-        try:
-            pet_name = webDriverWait.until(
-                EC.presence_of_element_located((By.ID, 'error_1_id_pet_name'))
-            )
-            visit_schedule = webDriverWait.until(
-                EC.presence_of_element_located((By.ID, 'error_1_id_visit_schedule'))
-            )
-            visit_description = webDriverWait.until(
-                EC.presence_of_element_located((By.ID, 'error_1_id_visit_description'))
-            )
-            veterinary_physician = webDriverWait.until(
-                EC.presence_of_element_located((By.ID, 'error_1_id_veterinary_physician'))
-            )
+    def test_appointment_model_uses_regex_validator_for_visit_description_field(self):
+        index = 0
+        validator_list = Appointment._meta.get_field('visit_description').validators
+        for i, validator in enumerate(validator_list):
+            if (type(validator) is RegexValidator):
+                index = i
+                break
 
-            self.assertEqual(pet_name.find_element_by_tag_name('strong').text,
-                             'This field is required.')
-            self.assertEqual(visit_schedule.find_element_by_tag_name('strong').text,
-                             'This field is required.')
-            self.assertEqual(visit_description.find_element_by_tag_name('strong').text,
-                             'This field is required.')
-            self.assertEqual(veterinary_physician.find_element_by_tag_name('strong').text,
-                             'This field is required.')
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
+        self.assertTrue(type(validator_list[index]) is RegexValidator)
 
-    def test_successful_appointment_scheduling(self):
-        self.create_test_data()
-        webDriverWait = WebDriverWait(self.selenium, 10)
+    def test_appointment_model_form_has_onchange_behavior_for_veterinary_physician(self):
+        form = AppointmentForm()
 
-        try:
-            vet_index = 0
-            pet_index = 0
-            submit_button = self.selenium.find_element_by_id('submit-id-submit')
-            pet_name = self.selenium.find_element_by_id('id_pet_name')
-            pet_option_fields = pet_name.find_elements_by_tag_name('option')
-            pet_description = self.selenium.find_element_by_id('id_pet_description')
-            visit_schedule = self.selenium.find_element_by_id('id_visit_schedule')
-            visit_description = self.selenium.find_element_by_id('id_visit_description')
-            veterinary_physician = self.selenium.find_element_by_id('id_veterinary_physician')
-            vet_option_fields = veterinary_physician.find_elements_by_tag_name('option')
+        self.assertTrue(form.Meta.widgets.get('veterinary_physician').attrs.get('onchange') is not None)
 
-            for i, option in enumerate(vet_option_fields):
-                if (option.get_attribute('selected') is None):
-                    vet_index = i
+    def test_appointment_model_form_has_queryset_for_pet_name_field(self):
+        customer = self.create_customer()
 
-            for i, option in enumerate(pet_option_fields):
-                if (option.get_attribute('selected') is None):
-                    pet_index = i
+        response = self.goto_add_appointment_with_params(
+            {'pet_owner_name': str(customer), 'pet_owner': customer.id})
 
-            vet_select_box = select.Select(veterinary_physician)
-            vet_select_box.select_by_value(vet_option_fields[vet_index].get_attribute('value'))
+        self.assertTrue(response.context['form'].fields['pet_name'].queryset is not None)
 
-            pet_select_box = select.Select(pet_name)
-            pet_select_box.select_by_value(pet_option_fields[pet_index].get_attribute('value'))
+    def test_appointment_page_has_success_variable_in_context(self):
+        customer = self.create_customer()
+        pet = self.create_pet(customer)
+        veterinary_physician = self.create_veterinary_physician()
+        current_datetime = format(localtime(now()) + timedelta(hours=25), '%m/%d/%Y %I:%M %p').replace(' 0',
+                                                                                                       ' ').lower()
 
-            current_datetime = format(datetime.now() + timedelta(hours=25), '%m/%d/%Y %I:%M %p')
+        response = self.goto_add_appointment_with_params(
+            {'pet_owner_name': str(customer), 'pet_name': pet.id,
+             'pet_owner': customer.id, 'pet_description': 'Siberian Husky',
+             'visit_schedule': current_datetime,
+             'visit_description': 'Checkup',
+             'veterinary_physician': veterinary_physician.id})
 
-            actions = ActionChains(self.selenium)
-            actions.send_keys_to_element(pet_description, 'Siberian Husky')
-            actions.send_keys_to_element(visit_schedule, current_datetime)
-            actions.send_keys_to_element(visit_description, 'Checkup')
-            actions.click(submit_button)
-            actions.perform()
-
-            element = webDriverWait.until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'alert-success'))
-            )
-            self.assertEqual(element.text,
-                             'Your request for an Appointment has been saved. Please wait for the Physician\'s Confirmation via email.')
-
-        except TimeoutException as e:
-            self.fail('Unable to Execute Test Properly')
+        self.assertEqual(response.context['success'], True)
+        self.assertTrue(Appointment.objects.count() == 1)
