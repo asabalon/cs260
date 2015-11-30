@@ -1,12 +1,13 @@
+from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, render_to_response
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from .forms import AppointmentForm
+from django.template import RequestContext
+
+from .forms import AppointmentForm, RegistrationForm
 from .models import Pet, Appointment, Customer, VeterinaryPhysician
 
-
-# Create your views here.
 
 @login_required(login_url='../login', redirect_field_name=None)
 def add_appointment(request):
@@ -118,10 +119,40 @@ def login_user(request):
             if user.is_active:
                 login(request, user)
                 state = "You're successfully logged in!"
-                return HttpResponseRedirect(request.META.get('HTTP_REFERRER', '../add'))
+                return HttpResponseRedirect(request.META.get('HTTP_REFERRER', '../home'))
             else:
                 state = "Your account is not active, please contact the site admin."
         else:
             state = "Username/Password is incorrect"
 
     return render_to_response('auth.html', {'state': state, 'username': username})
+
+
+def register(request):
+    if request.method == 'POST':
+        form = RegistrationForm(request.POST, auto_id=False)
+        if form.is_valid():
+            user = User.objects.create_user(
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password1'],
+                email=form.cleaned_data['email']
+            )
+            return HttpResponseRedirect('/registration/success/')
+    else:
+        form = RegistrationForm()
+    variables = RequestContext(request, {
+        'form': form
+    })
+
+    return render_to_response('registration/register.html', variables,)
+
+
+def register_success(request):
+    return render_to_response(
+        'registration/success.html',
+    )
+
+
+@login_required(login_url='../login')
+def home(request):
+    return render_to_response('home.html', {'user': request.user})

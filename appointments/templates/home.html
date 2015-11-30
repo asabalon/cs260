@@ -2,12 +2,23 @@
 {% load crispy_forms_tags %}
 
 {% block page_title %}
-Home
+    Home
 {% endblock %}
 
 {% block page_panel %}
+    <script>
+        $(document).ready(function () {
+            $("[name='li_home']").addClass('active');
+        })
+    </script>
     <div class="container">
-
+        <div class="row">
+            <h1>Welcome {{ user.username }}!</h1>
+        </div>
+        <div class="row">
+            <a href="../add">ADD APPOINTMENT</a>
+            <a href="../view">VIEW APPOINTMENTS</a>
+        </div>
 
     </div>
 {% endblock %}

@@ -26,5 +26,8 @@ urlpatterns = [
     url(r'^view/$', 'appointments.views.view_appointments', name='view_appointments'),
     url(r'^login/$', 'appointments.views.login_user', name='login'),
     url(r'^logout/$', 'django.contrib.auth.views.logout', {"next_page": reverse_lazy('login')}, name="logout"),
+    url(r'^register/$', 'appointments.views.register', name='register'),
+    url(r'^register/success/$', 'appointments.views.register_success',name='register_success'),
+    url(r'^home/$', 'appointments.views.home', name='home'),
 ]
 
