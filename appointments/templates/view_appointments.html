@@ -2,10 +2,23 @@
 {% load crispy_forms_tags %}
 
 {% block page_title %}
-Add Appointment
+View Appointments
 {% endblock %}
 
 {% block page_panel %}
 <div class="col-xs-offset-3 col-xs-6">
+    <h1>My Appointments</h1>
+
+    <div class="list-group">
+        {% for appointment in appointments %}
+        <a href="#" class="list-group-item">
+            [{{ appointment.pet_name }}] with Dr./Dra. [{{ appointment.veterinary_physician }}]
+            @ {{ appointment.visit_schedule|date:'DATETIME_FORMAT' }}
+        </a>
+        {% empty %}
+        No Appointments yet. Click <a href="{% url 'add_appointment' %}?pet_owner={{ request.user.id }}">here</a> to schedule
+        an appointment.
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

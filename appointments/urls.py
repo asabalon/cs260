@@ -19,7 +19,7 @@ from django.core.urlresolvers import reverse_lazy
 from .views import AppointmentListView, AppointmentFormView
 
 urlpatterns = [
-    url(r'^add/$', AppointmentFormView.as_view(), name='add_appointment'),
+    url(r'^add/$', AppointmentFormView.as_view(), name='add_appointment', ),
     url(r'^add/get_vet_email/$', 'appointments.views.retrieve_vet_email', name='get_vet_email'),
     url(r'^add/create_test_pet/$', 'appointments.views.create_test_pet', name='create_test_pet'),
     url(r'^add/create_test_vet/$', 'appointments.views.create_test_veterinary_physician', name='create_test_vet'),
