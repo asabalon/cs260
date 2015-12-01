@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, render_to_response
 from django.contrib.auth import authenticate, login
@@ -15,10 +14,9 @@ class AppointmentListView(ListView):
     template_name = 'view_appointments.html'
 
     def get(self, request, *args, **kwargs):
-        context = {}
         self.queryset = Appointment.objects.filter(pet_owner_id=request.GET.get('pet_owner'))
 
-        return render(request, self.template_name, context)
+        return render(request, self.template_name, {'appointments': self.queryset })
 
     @method_decorator(login_required(login_url='../login'))
     def dispatch(self, *args, **kwargs):
@@ -128,7 +126,7 @@ def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST, auto_id=False)
         if form.is_valid():
-            user = User.objects.create_user(
+            user = Customer.objects.create_user(
                 username=form.cleaned_data['username'],
                 password=form.cleaned_data['password1'],
                 email=form.cleaned_data['email']
