@@ -7,8 +7,8 @@ from crispy_forms.layout import Submit, Reset, HTML
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import User
 from django.test import Client
-from .forms import AppointmentForm
-from .models import Pet, Customer, Appointment, VeterinaryPhysician
+from appointments.forms import AppointmentForm
+from appointments.models import Pet, Customer, Appointment, VeterinaryPhysician
 
 
 class AddAppointmentPageTests(TestCase):
@@ -48,6 +48,7 @@ class AddAppointmentPageTests(TestCase):
 
     def create_customer(self):
         customer = Customer.objects.create(
+            username = 'customer',
             first_name='My',
             middle_name='First',
             last_name='Customer',
@@ -58,10 +59,11 @@ class AddAppointmentPageTests(TestCase):
 
     def create_veterinary_physician(self):
         veterinary_physician = VeterinaryPhysician.objects.create(
+            username = 'veterinary_physician',
             first_name='My',
             middle_name='First',
             last_name='Veterinary Physician',
-            email_address='cs2602015project@gmail.com',
+            email='cs2602015project@gmail.com',
         )
         veterinary_physician.save()
 

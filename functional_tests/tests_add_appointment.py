@@ -1,8 +1,7 @@
-import time, json, requests
+import time, requests
 from contextlib import contextmanager
 from datetime import timedelta, datetime
 from django.utils.timezone import localtime, now
-from django.contrib.auth.models import User
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
@@ -10,6 +9,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.support import select, expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from appointments.models import Customer
 
 
 class AddAppointmentTests(StaticLiveServerTestCase):
@@ -36,8 +36,10 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         super(AddAppointmentTests, cls).tearDownClass()
 
     def setUp(self):
-        # No Registration Page Yet; Need to create User Manually
-        User.objects.create_user('temp_username', 'temporary@email.com', 'temp_password').save()
+        customer = Customer.objects.create_user('temp_username', 'temporary@email.com', 'temp_password',
+                                                first_name='My',
+                                                middle_name='First', last_name='Customer')
+        customer.save()
 
         self.selenium.get('%s%s' % (self.live_server_url, self.LOGIN_URI))
 
@@ -50,16 +52,17 @@ class AddAppointmentTests(StaticLiveServerTestCase):
                 password_field, 'temp_password').click(login_button).perform()
 
         with self.wait_for_page_load():
-            self.selenium.get('%s%s' % (self.live_server_url, self.APPOINTMENT_URI))
+            self.selenium.get('%s%s%s%s' % (self.live_server_url, self.APPOINTMENT_URI, '?pet_owner=', customer.id))
 
     def tearDown(self):
         with self.wait_for_page_load():
             self.selenium.get('%s%s' % (self.live_server_url, self.LOGOUT_URI))
 
+    # No Pet and Veterinary Registration Features yet
     def create_test_data(self):
+        customer = Customer.objects.get(username='temp_username')
         pet_params = '?name=Doggy&breed=Pug&age=1&owner='
-        customer_params = '?first_name=My&middle_name=First&last_name=Customer'
-        veterinary_physician_params = '?first_name=Dr&middle_name=Veterinary&last_name=Physician&email=cs2602015project@gmail.com'
+        veterinary_physician_params = '?username=veterinary_physician&first_name=Dr&middle_name=Veterinary&last_name=Physician&email=cs2602015project@gmail.com'
 
         with self.wait_for_page_load():
             self.selenium.get(
@@ -67,17 +70,12 @@ class AddAppointmentTests(StaticLiveServerTestCase):
                     self.live_server_url, self.APPOINTMENT_URI, 'create_test_vet/', veterinary_physician_params))
 
         with self.wait_for_page_load():
-            self.selenium.get(
-                '%s%s%s%s' % (self.live_server_url, self.APPOINTMENT_URI, 'create_test_customer/', customer_params))
-
-        with self.wait_for_page_load():
-            response = json.loads(self.selenium.find_element_by_tag_name('pre').text)
             self.selenium.get('%s%s%s%s%s' % (
-                self.live_server_url, self.APPOINTMENT_URI, 'create_test_pet/', pet_params, response['pet_owner_id']))
+                self.live_server_url, self.APPOINTMENT_URI, 'create_test_pet/', pet_params, customer.id))
 
         with self.wait_for_page_load():
             self.selenium.get(
-                '%s%s%s%s' % (self.live_server_url, self.APPOINTMENT_URI, '?pet_owner=', response['pet_owner_id']))
+                '%s%s%s%s' % (self.live_server_url, self.APPOINTMENT_URI, '?pet_owner=', customer.id))
 
     def test_add_appointment_page_is_accessible(self):
         # No HTTP Response yet on Selenium WebDriver
@@ -285,7 +283,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
         select_box.select_by_value(vet_option_fields[index].get_attribute('value'))
 
         try:
-            calendar_widget = WebDriverWait(self.selenium, 10).until(
+            calendar_widget = WebDriverWait(self.selenium, 20).until(
                 EC.visibility_of_element_located((By.ID, 'iframe_calendar'))
             )
 
