@@ -137,7 +137,7 @@ def register(request):
                 password=form.cleaned_data['password1'],
                 email=form.cleaned_data['email']
             )
-            return HttpResponseRedirect('/registration/success/')
+            return HttpResponseRedirect('../register/success/')
     else:
         form = RegistrationForm()
     variables = RequestContext(request, {
@@ -153,6 +153,6 @@ def register_success(request):
     )
 
 
-@login_required(login_url='../login')
+@login_required(login_url='../login', redirect_field_name=None)
 def home(request):
     return render_to_response('home.html', {'user': request.user})
