@@ -113,7 +113,7 @@ def login_user(request):
             if user.is_active:
                 login(request, user)
                 state = "You're successfully logged in!"
-                return HttpResponseRedirect(request.META.get('HTTP_REFERRER', '../home?pet_owner=' + str(request.user.id)))
+                return HttpResponseRedirect(request.META.get('HTTP_REFERRER', '../home'))
             else:
                 state = "Your account is not active, please contact the site admin."
         else:
@@ -149,6 +149,6 @@ def register_success(request):
 
 @login_required(login_url='../login', redirect_field_name=None)
 def home(request):
-    pet_owner_id = request.GET.get('pet_owner')
+    pet_owner_id = request.user.id
     customer = Customer.objects.get(id=pet_owner_id)
     return render_to_response('home.html', {'user': request.user, 'pet_owner': customer})

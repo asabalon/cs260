@@ -34,6 +34,11 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
+                <li>
+                    {% if user.is_authenticated %}
+                        <a href="#" name="lnk_account">Welcome {{ user.username }}!</a>
+                    {% endif %}
+                </li>
                 <li name="li_home"><a href="../home/">Home</a></li>
                 <li><a href="#">About</a></li>
                 <li><a href="#">Members</a></li>
