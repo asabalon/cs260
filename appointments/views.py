@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.views.generic import ListView, FormView
 from django.utils.decorators import method_decorator
-from .forms import AppointmentForm, RegistrationForm
+from .forms import AppointmentForm, RegistrationForm, PasswordChangeForm
 from .models import Pet, Appointment, Customer, VeterinaryPhysician
 
 
@@ -152,3 +152,8 @@ def home(request):
     pet_owner_id = request.user.id
     customer = Customer.objects.get(id=pet_owner_id)
     return render_to_response('home.html', {'user': request.user, 'pet_owner': customer})
+
+
+class PasswordChangeView(FormView):
+    form_class = PasswordChangeForm
+    template_name = 'accounts/password_change_form.html'

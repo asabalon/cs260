@@ -39,11 +39,11 @@
                         <a href="#" name="lnk_account">Welcome {{ user.username }}!</a>
                     {% endif %}
                 </li>
-                <li name="li_home"><a href="../home/">Home</a></li>
+                <li name="li_home"><a href="{% url 'appointments:home' %}">Home</a></li>
                 <li><a href="#">About</a></li>
                 <li><a href="#">Members</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'logout' %}" name="lnk_logout">Logout</a></li>
+                    <li><a href="{% url 'appointments:logout' %}" name="lnk_logout">Logout</a></li>
                 {% else %}
                     <li><a href="../login" name="lnk_login">Login</a></li>
                 {% endif %}

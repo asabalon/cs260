@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import SetPasswordForm
 from django.contrib.auth.models import User
 from django.utils.timezone import localtime, now
 from datetime import timedelta
@@ -100,3 +101,26 @@ class RegistrationForm(forms.Form):
             if self.cleaned_data['password1'] != self.cleaned_data['password2']:
                 raise forms.ValidationError("The two password fields did not match.")
         return self.cleaned_data
+
+
+class PasswordChangeForm(SetPasswordForm):
+    error_messages = dict(SetPasswordForm.error_messages, **{
+        'password_incorrect': ("Your old password was entered incorrectly. "
+                               "Please enter it again."),
+    })
+    old_password = forms.CharField(label="Old password",
+                                   widget=forms.PasswordInput)
+
+    field_order = ['old_password', 'new_password1', 'new_password2']
+
+    def clean_old_password(self):
+        """
+        Validates that the old_password field is correct.
+        """
+        old_password = self.cleaned_data["old_password"]
+        if not self.user.check_password(old_password):
+            raise forms.ValidationError(
+                self.error_messages['password_incorrect'],
+                code='password_incorrect',
+            )
+        return old_password

@@ -16,7 +16,12 @@
             <h1>Welcome {{ user.username }}!</h1>
         </div>
         <div class="row">
+            <a href="{% url 'appointments:password_change' %}">CHANGE PASSWORD</a>
+        </div>
+        <hr>
+        <div class="row">
             <a href="../add?pet_owner={{ pet_owner.id }}">ADD APPOINTMENT</a>
+            <div class="clearfix"></div>
             <a href="../view?pet_owner={{ pet_owner.id }}">VIEW APPOINTMENTS</a>
         </div>
 
