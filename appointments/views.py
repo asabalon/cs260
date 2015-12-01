@@ -16,7 +16,7 @@ class AppointmentListView(ListView):
 
     def get(self, request, *args, **kwargs):
         context = {}
-        self.queryset = Appointment.objects.filter(pet_owner_id=100)
+        self.queryset = Appointment.objects.filter(pet_owner_id=request.GET.get('pet_owner'))
 
         return render(request, self.template_name, context)
 
