@@ -1,13 +1,12 @@
 from django.db import models
 from django.core.validators import RegexValidator
+from django.contrib.auth.models import User
 
 
 # Create your models here.
 
-class Customer(models.Model):
-    first_name = models.CharField(max_length=50)
+class Customer(User):
     middle_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
 
     def __str__(self):
         return "%s, %s %s" % (self.last_name, self.first_name, self.middle_name)
@@ -23,11 +22,8 @@ class Pet(models.Model):
         return "%s : %s" % (self.name, self.breed)
 
 
-class VeterinaryPhysician(models.Model):
-    first_name = models.CharField(max_length=50)
+class VeterinaryPhysician(User):
     middle_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    email_address = models.EmailField()
 
     def __str__(self):
         return "%s, %s %s" % (self.last_name, self.first_name, self.middle_name)
@@ -42,6 +38,7 @@ class Appointment(models.Model):
     visit_schedule = models.DateTimeField(auto_now=False, auto_now_add=False)
     visit_description = models.CharField(max_length=500, validators=[without_special_chars])
     veterinary_physician = models.ForeignKey(VeterinaryPhysician)
+    is_confirmed = models.BooleanField(default=False)
 
     def __str__(self):
         return "%s : %s : %s" % (self.pet_owner, self.visit_schedule, self.veterinary_physician)
