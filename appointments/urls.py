@@ -14,8 +14,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import url
-from django.core.urlresolvers import reverse_lazy
-
 from .views import AppointmentListView, AppointmentFormView
 
 urlpatterns = [
@@ -25,9 +23,28 @@ urlpatterns = [
     url(r'^add/create_test_vet/$', 'appointments.views.create_test_veterinary_physician', name='create_test_vet'),
     url(r'^view/$', AppointmentListView.as_view(), name='view_appointments'),
     url(r'^login/$', 'appointments.views.login_user', name='login'),
-    url(r'^logout/$', 'django.contrib.auth.views.logout', {"next_page": reverse_lazy('login')}, name="logout"),
     url(r'^register/$', 'appointments.views.register', name='register'),
-    url(r'^register/success/$', 'appointments.views.register_success',name='register_success'),
+    url(r'^register/success/$', 'appointments.views.register_success', name='register_success'),
     url(r'^home/$', 'appointments.views.home', name='home'),
+    url(
+        r'^logout/$',
+        'django.contrib.auth.views.logout',
+        name='logout',
+        kwargs={'next_page': 'appointments:login'}
+    ),
+    url(
+        r'^password_change$',
+        'django.contrib.auth.views.password_change',
+        name='password_change',
+        kwargs={
+            'template_name': 'accounts/password_change_form.html',
+            'post_change_redirect': 'appointments:password_change_done',
+        }
+    ),
+    url(
+        r'^password_change_done$',
+        'django.contrib.auth.views.password_change_done',
+        name='password_change_done',
+        kwargs={'template_name': 'accounts/password_change_done.html'}
+    ),
 ]
-
