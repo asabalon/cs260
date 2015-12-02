@@ -45,7 +45,7 @@
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'appointments:logout' %}" name="lnk_logout">Logout</a></li>
                 {% else %}
-                    <li><a href="../login" name="lnk_login">Login</a></li>
+                    <li><a href="{% url 'appointments:login' %}" name="lnk_login">Login</a></li>
                 {% endif %}
             </ul>
         </div><!-- /.navbar-collapse -->

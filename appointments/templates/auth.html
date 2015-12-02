@@ -106,7 +106,7 @@
                         <button class="btn btn-lg btn-primary btn-block" type="submit" name="btn_submit">Sign in
                         </button>
                         <div>
-                            <a href="../register">Create account</a> or <a href="#">reset password</a>
+                            <a href="{% url 'appointments:register' %}">Create account</a> or <a href="{% url 'appointments:password_reset_form' %}">reset password</a>
                         </div>
                     </form>
                 </section>
