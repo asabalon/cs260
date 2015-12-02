@@ -32,7 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     # Django Applications
-    'django.contrib.admin',
+
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'bootstrap3_datetime',
     # Developer applications
     'appointments',
+    'django.contrib.admin',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -118,6 +119,10 @@ STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static")
 # Crispy Forms Required Constants
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-
-
-
+if DEBUG:
+    EEMAIL_HOST = 'localhost'
+    EMAIL_PORT = 1025
+    EMAIL_HOST_USER = ''
+    EMAIL_HOST_PASSWORD = ''
+    EMAIL_USE_TLS = False
+    DEFAULT_FROM_EMAIL = 'testing@example.com'

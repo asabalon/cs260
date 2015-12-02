@@ -47,4 +47,26 @@ urlpatterns = [
         name='password_change_done',
         kwargs={'template_name': 'accounts/password_change_done.html'}
     ),
+    url(r'^user/password/reset/$',
+        'django.contrib.auth.views.password_reset',
+        name='password_reset_form',
+        kwargs={
+            'template_name': 'registration/password_reset_form.html',
+            'post_reset_redirect' : 'appointments:password_reset_done'}),
+    url(r'^user/password/reset/done/$',
+        'django.contrib.auth.views.password_reset_done',
+        name='password_reset_done',
+        kwargs={
+            'template_name': 'registration/password_reset_done.html'}),
+    url(r'^user/password/reset/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$',
+        'django.contrib.auth.views.password_reset_confirm',
+        name='password_reset_confirm',
+        kwargs={
+            'template_name': 'registration/password_reset_confirm.html',
+            'post_reset_redirect' : 'appointments:password_done'}),
+    url(r'^user/password/done/$',
+        'django.contrib.auth.views.password_reset_complete',
+        name='password_done'),
+
+
 ]
