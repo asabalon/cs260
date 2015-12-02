@@ -14,7 +14,7 @@ class AppointmentListView(ListView):
     template_name = 'view_appointments.html'
 
     def get(self, request, *args, **kwargs):
-        self.queryset = Appointment.objects.filter(pet_owner_id=request.GET.get('pet_owner'))
+        self.queryset = Appointment.objects.filter(pet_owner_id=request.user.id)
 
         return render(request, self.template_name, {'appointments': self.queryset })
 
@@ -28,7 +28,7 @@ class AppointmentFormView(FormView):
     template_name = 'add_appointment.html'
 
     def get(self, request, *args, **kwargs):
-        pet_owner_id = request.GET.get('pet_owner')
+        pet_owner_id = request.user.id
         customer = Customer.objects.get(id=pet_owner_id)
         form = self.form_class(initial={
             'pet_owner': customer,
@@ -71,7 +71,7 @@ def retrieve_vet_email(request):
 @login_required(login_url='../login')
 def create_test_pet(request):
     if request.method == 'GET':
-        customer = Customer.objects.get(id=request.GET.get('owner'))
+        customer = Customer.objects.get(id=request.user.id)
         pet = Pet.objects.create(
             name=request.GET.get('name'),
             breed=request.GET.get('breed'),

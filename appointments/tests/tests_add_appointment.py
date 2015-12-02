@@ -7,8 +7,10 @@ from crispy_forms.layout import Submit, Reset, HTML
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import User
 from django.test import Client
+from django.views.generic import FormView
 from appointments.forms import AppointmentForm
 from appointments.models import Pet, Customer, Appointment, VeterinaryPhysician
+from appointments.views import AppointmentFormView
 
 
 class AddAppointmentPageTests(TestCase):
@@ -16,7 +18,7 @@ class AddAppointmentPageTests(TestCase):
     def setUpClass(cls):
         super(AddAppointmentPageTests, cls).setUpClass()
         cls.client = Client()
-        user = User.objects.create_user('temp', 'temporary@gmail.com', 'secret')
+        user = Customer.objects.create_user('temp', 'temporary@gmail.com', 'secret')
         user.save()
 
     @classmethod
@@ -48,7 +50,7 @@ class AddAppointmentPageTests(TestCase):
 
     def create_customer(self):
         customer = Customer.objects.create(
-            username = 'customer',
+            username='customer',
             first_name='My',
             middle_name='First',
             last_name='Customer',
@@ -59,7 +61,7 @@ class AddAppointmentPageTests(TestCase):
 
     def create_veterinary_physician(self):
         veterinary_physician = VeterinaryPhysician.objects.create(
-            username = 'veterinary_physician',
+            username='veterinary_physician',
             first_name='My',
             middle_name='First',
             last_name='Veterinary Physician',
@@ -127,9 +129,9 @@ class AddAppointmentPageTests(TestCase):
         self.assertTrue(veterinary_physician_field)
 
     def test_add_appointment_form_contains_pet_owner_name_before_post(self):
-        customer = self.create_customer()
+        customer = Customer.objects.get(username='temp')
 
-        form = self.client.get('/appointments/add/?pet_owner=%s' % (customer.id)).context['form']
+        form = self.client.get('/appointments/add/').context['form']
 
         self.assertEqual(form['pet_owner_name'].value(), str(customer))
 
@@ -207,3 +209,6 @@ class AddAppointmentPageTests(TestCase):
 
         self.assertEqual(response.context['success'], True)
         self.assertTrue(Appointment.objects.count() == 1)
+
+    def test_view_appointments_page_is_a_list_view(self):
+        self.assertTrue(AppointmentFormView.__base__ is FormView)

@@ -15,7 +15,7 @@ class AppointmentForm(forms.ModelForm):
 
     helper = FormHelper()
     helper.form_method = "POST"
-    helper.form_action = 'add_appointment'
+    helper.form_action = ''
     helper.layout = Layout(
         Fieldset(
             'Schedule an Appointment',
@@ -31,7 +31,7 @@ class AppointmentForm(forms.ModelForm):
             Submit('submit', 'Schedule', css_class='btn btn-primary'),
             Reset('reset', 'Clear', css_class='btn btn-default'),
             HTML(
-                '<a id="cancel-id-cancel" name="cancel" value="Cancel" class="btn btn btn-default" href="{% url "add_appointment" %}">Cancel</a>')
+                '<a id="cancel-id-cancel" name="cancel" value="Cancel" class="btn btn btn-default" href="{% url \'appointments:home\' %}">Cancel</a>')
         )
     )
 

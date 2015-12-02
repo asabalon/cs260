@@ -1,7 +1,7 @@
 # LIST: https://docs.djangoproject.com/en/dev/ref/templates/builtins/#date
 DATE_FORMAT = 'd-m-Y'
 TIME_FORMAT = 'H:i'
-DATETIME_FORMAT = 'm/d/Y H:i'
+DATETIME_FORMAT = 'm/d/Y P'
 YEAR_MONTH_FORMAT = 'F Y'
 MONTH_DAY_FORMAT = 'F j'
 SHORT_DATE_FORMAT = 'm/d/Y'

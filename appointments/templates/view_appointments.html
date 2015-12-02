@@ -2,10 +2,49 @@
 {% load crispy_forms_tags %}
 
 {% block page_title %}
-Add Appointment
+View Appointments
 {% endblock %}
 
 {% block page_panel %}
-<div class="col-xs-offset-3 col-xs-6">
+<div class="col-xs-offset-1 col-xs-10">
+    {% if appointments|length <= 0 %}
+    <div class="alert alert-danger" role="alert">
+        No Appointments yet. Click <a href="{% url 'appointments:add_appointment' %}">here</a> to schedule an
+        appointment.
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        Regularly check the status of your appointments.
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+        <div class="panel-heading">My Appointments</div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Pet Name</th>
+                <th>Doctor's Name</th>
+                <th>Schedule</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ appointment.pet_name.name }}</td>
+                <td>{{ appointment.veterinary_physician }}</td>
+                <td>{{ appointment.visit_schedule|date:'DATETIME_FORMAT' }}</td>
+                {% if appointment.is_confirmed %}
+                <td class="alert-success">Confirmed</td>
+                {% else %}
+                <td class="alert-error">Waiting Confirmation</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
