@@ -116,6 +116,8 @@ class ViewAppointmentsTests(StaticLiveServerTestCase):
             self.selenium.get(
                 '%s%s' % (self.live_server_url, self.VIEW_APPOINTMENTS_URI))
 
+        return {'scheduled_visit': current_datetime}
+
     def test_view_appointments_page_is_accessible(self):
         # No HTTP Response yet on Selenium WebDriver
         response = requests.get(self.selenium.current_url)
@@ -132,3 +134,52 @@ class ViewAppointmentsTests(StaticLiveServerTestCase):
         info_message = self.selenium.find_element_by_class_name('alert-info')
 
         self.assertEqual(info_message.text, 'Regularly check the status of your appointments.')
+
+    def test_view_appointments_page_is_in_tabular_form(self):
+        self.create_test_data()
+        appointments_table_by_class = self.selenium.find_element_by_class_name('table')
+        appointments_table_by_tagname = self.selenium.find_element_by_tag_name('table')
+
+        self.assertEqual(appointments_table_by_class, appointments_table_by_tagname)
+
+    def test_view_appointments_page_contains_headers(self):
+        self.create_test_data()
+        expected_table_headers = {'#', 'Pet Name', 'Doctor\'s Name', 'Schedule', 'Status'}
+        appointments_table = self.selenium.find_element_by_class_name('table')
+        appointments_table_headers = appointments_table.find_elements(By.XPATH, "//thead/tr/th")
+
+        self.assertEqual(len(expected_table_headers), len(appointments_table_headers))
+        for header in appointments_table_headers:
+            self.assertTrue(header.text in expected_table_headers)
+
+    def test_view_appointments_page_contains_correct_data(self):
+        response = self.create_test_data()
+
+        expected_table_data = {'Doggy', 'Physician, Dr. Veterinary', response.get('scheduled_visit'),
+                                  'Waiting Confirmation'}
+        appointments_table = self.selenium.find_element_by_class_name('table')
+        appointments_table_data = appointments_table.find_elements(By.XPATH, "//tbody/tr[0]/td")
+
+        for header in appointments_table_data:
+            self.assertTrue(header.text in expected_table_data)
+
+    def test_view_appointments_page_contains_headers_in_correct_order(self):
+        self.create_test_data()
+        expected_table_headers = ['#', 'Pet Name', 'Doctor\'s Name', 'Schedule', 'Status']
+        appointments_table = self.selenium.find_element_by_class_name('table')
+        appointments_table_headers = appointments_table.find_elements(By.XPATH, "//thead/tr/th")
+
+        self.assertEqual(len(expected_table_headers), len(appointments_table_headers))
+        for i, header in enumerate(appointments_table_headers):
+            self.assertEqual(header.text, expected_table_headers[i])
+
+    def test_view_appointments_page_contains_correct_data_in_order(self):
+        response = self.create_test_data()
+
+        expected_table_data = ['Doggy', 'Physician, Dr. Veterinary', response.get('scheduled_visit'),
+                                  'Waiting Confirmation']
+        appointments_table = self.selenium.find_element_by_class_name('table')
+        appointments_table_data = appointments_table.find_elements(By.XPATH, "//tbody/tr[0]/td")
+
+        for i, header in enumerate(appointments_table_data):
+            self.assertTrue(header.text, expected_table_data[i])
