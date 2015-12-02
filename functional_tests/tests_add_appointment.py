@@ -61,8 +61,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
 
     # No Pet and Veterinary Registration Features yet
     def create_test_data(self):
-        customer = Customer.objects.get(username='temp_username')
-        pet_params = '?name=Doggy&breed=Pug&age=1&owner='
+        pet_params = '?name=Doggy&breed=Pug&age=1'
         veterinary_physician_params = '?username=veterinary_physician&first_name=Dr&middle_name=Veterinary&last_name=Physician&email=cs2602015project@gmail.com'
 
         with self.wait_for_page_load():
@@ -71,12 +70,12 @@ class AddAppointmentTests(StaticLiveServerTestCase):
                     self.live_server_url, self.APPOINTMENT_URI, 'create_test_vet/', veterinary_physician_params))
 
         with self.wait_for_page_load():
-            self.selenium.get('%s%s%s%s%s' % (
-                self.live_server_url, self.APPOINTMENT_URI, 'create_test_pet/', pet_params, customer.id))
+            self.selenium.get('%s%s%s%s' % (
+                self.live_server_url, self.APPOINTMENT_URI, 'create_test_pet/', pet_params))
 
         with self.wait_for_page_load():
             self.selenium.get(
-                '%s%s%s%s' % (self.live_server_url, self.APPOINTMENT_URI, '?pet_owner=', customer.id))
+                '%s%s' % (self.live_server_url, self.APPOINTMENT_URI))
 
     def test_add_appointment_page_is_accessible(self):
         # No HTTP Response yet on Selenium WebDriver
