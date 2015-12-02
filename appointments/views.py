@@ -71,7 +71,7 @@ def retrieve_vet_email(request):
 @login_required(login_url='../login')
 def create_test_pet(request):
     if request.method == 'GET':
-        customer = Customer.objects.get(id=request.GET.get('owner'))
+        customer = Customer.objects.get(id=request.user.id)
         pet = Pet.objects.create(
             name=request.GET.get('name'),
             breed=request.GET.get('breed'),

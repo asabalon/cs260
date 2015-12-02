@@ -6,19 +6,41 @@ View Appointments
 {% endblock %}
 
 {% block page_panel %}
-<div class="col-xs-offset-3 col-xs-6">
-    <h1>My Appointments</h1>
-
-    <div class="list-group">
-        {% for appointment in appointments %}
-        <a href="#" class="list-group-item">
-            [{{ appointment.pet_name }}] with Dr./Dra. [{{ appointment.veterinary_physician }}]
-            @ {{ appointment.visit_schedule|date:'DATETIME_FORMAT' }}
-        </a>
-        {% empty %}
-        No Appointments yet. Click <a href="{% url 'appointments:add_appointment' %}?pet_owner={{ request.user.id }}">here</a> to schedule
-        an appointment.
-        {% endfor %}
+<div class="col-xs-offset-1 col-xs-10">
+    <div class="panel panel-default">
+        <div class="panel-heading">My Appointments</div>
+        <div class="panel-body">
+            <p>Regularly check the status of your appointment.</p>
+        </div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Pet Name</th>
+                <th>Doctor's Name</th>
+                <th>Schedule</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>{{ appointment.pet_name.name }}</td>
+                    <td>{{ appointment.veterinary_physician }}</td>
+                    <td>{{ appointment.visit_schedule|date:'DATETIME_FORMAT' }}</td>
+                    {% if appointment.is_confirmed %}
+                    <td>Confirmed</td>
+                    {% else %}
+                    <td>Waiting Confirmation</td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                No Appointments yet. Click <a href="{% url 'appointments:add_appointment' %}">here</a> to schedule
+                an appointment.
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
