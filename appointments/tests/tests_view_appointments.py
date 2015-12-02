@@ -18,7 +18,7 @@ class ViewAppointmentsPageTests(TestCase):
     def setUpClass(cls):
         super(ViewAppointmentsPageTests, cls).setUpClass()
         cls.client = Client()
-        user = User.objects.create_user('temp', 'temporary@gmail.com', 'secret')
+        user = Customer.objects.create_user('temp', 'temporary@gmail.com', 'secret')
         user.save()
 
     @classmethod
@@ -90,8 +90,7 @@ class ViewAppointmentsPageTests(TestCase):
     def test_correct_uri_resolves_to_view_appointments_page(self):
         customer = self.create_customer()
 
-        self.assertTemplateUsed(self.goto_view_appointments_with_params(
-            {'pet_owner': customer.id}), 'view_appointments.html')
+        self.assertTemplateUsed(self.goto_view_appointments_with_params({}), 'view_appointments.html')
 
     def test_view_appointments_page_uses_appointment_model(self):
         appointment_list_view = AppointmentListView()
@@ -101,7 +100,7 @@ class ViewAppointmentsPageTests(TestCase):
     def test_view_appointments_page_has_correct_queryset(self):
         veterinary_physician = self.create_veterinary_physician()
 
-        customer = self.create_customer()
+        customer = Customer.objects.get(username='temp')
         other_customer = Customer.objects.create_user('other_user', 'other@email.com', 'other_password')
         other_customer.save()
 
@@ -111,9 +110,7 @@ class ViewAppointmentsPageTests(TestCase):
         self.create_appointment(customer, pet, veterinary_physician)
         self.create_appointment(other_customer, other_pet, veterinary_physician)
 
-        response = self.goto_view_appointments_with_params(
-            {'pet_owner': customer.id}
-        )
+        response = self.goto_view_appointments_with_params({})
 
         self.assertEqual(len(response.context['appointments']), 1)
         self.assertEqual(Appointment.objects.filter(pet_owner_id=customer.id)[0].id,
@@ -122,8 +119,6 @@ class ViewAppointmentsPageTests(TestCase):
     def test_view_appointments_page_has_appointments_in_context(self):
         customer = self.create_customer()
 
-        response = self.goto_view_appointments_with_params(
-            {'pet_owner': customer.id}
-        )
+        response = self.goto_view_appointments_with_params({})
 
         self.assertTrue('appointments' in response.context)

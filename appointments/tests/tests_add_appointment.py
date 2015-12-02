@@ -18,7 +18,7 @@ class AddAppointmentPageTests(TestCase):
     def setUpClass(cls):
         super(AddAppointmentPageTests, cls).setUpClass()
         cls.client = Client()
-        user = User.objects.create_user('temp', 'temporary@gmail.com', 'secret')
+        user = Customer.objects.create_user('temp', 'temporary@gmail.com', 'secret')
         user.save()
 
     @classmethod
@@ -129,9 +129,9 @@ class AddAppointmentPageTests(TestCase):
         self.assertTrue(veterinary_physician_field)
 
     def test_add_appointment_form_contains_pet_owner_name_before_post(self):
-        customer = self.create_customer()
+        customer = Customer.objects.get(username='temp')
 
-        form = self.client.get('/appointments/add/?pet_owner=%s' % (customer.id)).context['form']
+        form = self.client.get('/appointments/add/').context['form']
 
         self.assertEqual(form['pet_owner_name'].value(), str(customer))
 

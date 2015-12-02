@@ -13,6 +13,7 @@ from appointments.models import Customer
 
 
 class AddAppointmentTests(StaticLiveServerTestCase):
+    HOME_URI = '/appointments/home/'
     LOGIN_URI = '/appointments/login/'
     LOGOUT_URI = '/appointments/logout/'
     APPOINTMENT_URI = '/appointments/add/'
@@ -52,7 +53,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
                 password_field, 'temp_password').click(login_button).perform()
 
         with self.wait_for_page_load():
-            self.selenium.get('%s%s%s%s' % (self.live_server_url, self.APPOINTMENT_URI, '?pet_owner=', customer.id))
+            self.selenium.get('%s%s' % (self.live_server_url, self.APPOINTMENT_URI))
 
     def tearDown(self):
         with self.wait_for_page_load():
@@ -161,7 +162,7 @@ class AddAppointmentTests(StaticLiveServerTestCase):
 
         ActionChains(self.selenium).click(cancel_button).perform()
 
-        self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, self.APPOINTMENT_URI))
+        self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, self.HOME_URI))
 
     def test_pet_description_field_length_constraint(self):
         sample_text = 'Sample Text' * 50

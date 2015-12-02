@@ -16,7 +16,7 @@ View Appointments
             @ {{ appointment.visit_schedule|date:'DATETIME_FORMAT' }}
         </a>
         {% empty %}
-        No Appointments yet. Click <a href="{% url 'add_appointment' %}?pet_owner={{ request.user.id }}">here</a> to schedule
+        No Appointments yet. Click <a href="{% url 'appointments:add_appointment' %}?pet_owner={{ request.user.id }}">here</a> to schedule
         an appointment.
         {% endfor %}
     </div>
