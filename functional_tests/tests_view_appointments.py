@@ -76,6 +76,7 @@ class ViewAppointmentsTests(StaticLiveServerTestCase):
         with self.wait_for_page_load():
             self.selenium.get(
                 '%s%s' % (self.live_server_url, self.ADD_APPOINTMENT_URI))
+
             vet_index = 0
             pet_index = 0
 
@@ -115,8 +116,19 @@ class ViewAppointmentsTests(StaticLiveServerTestCase):
             self.selenium.get(
                 '%s%s' % (self.live_server_url, self.VIEW_APPOINTMENTS_URI))
 
-    def test_add_appointment_page_is_accessible(self):
+    def test_view_appointments_page_is_accessible(self):
         # No HTTP Response yet on Selenium WebDriver
         response = requests.get(self.selenium.current_url)
 
         self.assertEqual(response.status_code, 200)
+
+    def test_view_appointments_page_contains_error_message_when_no_appointments(self):
+        error_message = self.selenium.find_element_by_class_name('alert-danger')
+
+        self.assertEqual(error_message.text, 'No Appointments yet. Click here to schedule an appointment.')
+
+    def test_view_appointments_page_contains_info_message_when_with_appointments(self):
+        self.create_test_data()
+        info_message = self.selenium.find_element_by_class_name('alert-info')
+
+        self.assertEqual(info_message.text, 'Regularly check the status of your appointments.')
