@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^add/get_vet_email/$', 'appointments.views.retrieve_vet_email', name='get_vet_email'),
     url(r'^add/create_test_pet/$', 'appointments.views.create_test_pet', name='create_test_pet'),
     url(r'^add/create_test_vet/$', 'appointments.views.create_test_veterinary_physician', name='create_test_vet'),
+    url(r'^add/update_user_details/$', 'appointments.views.update_user_details', name='update_user_details'),
     url(r'^view/$', AppointmentListView.as_view(), name='view_appointments'),
     url(r'^login/$', 'appointments.views.login_user', name='login'),
     url(r'^register/$', 'appointments.views.register', name='register'),

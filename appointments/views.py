@@ -16,7 +16,7 @@ class AppointmentListView(ListView):
     def get(self, request, *args, **kwargs):
         self.queryset = Appointment.objects.filter(pet_owner_id=request.user.id)
 
-        return render(request, self.template_name, {'appointments': self.queryset })
+        return render(request, self.template_name, {'appointments': self.queryset})
 
     @method_decorator(login_required(login_url='../login'))
     def dispatch(self, *args, **kwargs):
@@ -83,6 +83,7 @@ def create_test_pet(request):
     else:
         return JsonResponse({'pet_id': None})
 
+
 # Need Separate Registration for Veterinary Physicians
 @login_required(login_url='../login')
 def create_test_veterinary_physician(request):
@@ -98,6 +99,26 @@ def create_test_veterinary_physician(request):
         return JsonResponse({'vet_id': veterinary_physician.id})
     else:
         return JsonResponse({'vet_id': None})
+
+
+# Need Update Profile Features
+@login_required(login_url='../login')
+def update_user_details(request):
+    if (request.method == 'GET'):
+        customer = Customer.objects.get(id=request.user.id)
+
+        print(customer)
+        print(type(customer.first_name))
+        customer.first_name = request.GET.get('first_name'),
+        customer.middle_name = request.GET.get('middle_name'),
+        customer.last_name = request.GET.get('last_name'),
+        customer.save()
+
+        print(type(customer.first_name))
+
+        return JsonResponse({'result': str(customer)})
+    else:
+        return JsonResponse({'result': None})
 
 
 def login_user(request):

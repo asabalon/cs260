@@ -26,6 +26,7 @@ View Appointments
                 <th>Pet Name</th>
                 <th>Doctor's Name</th>
                 <th>Schedule</th>
+                <!--<th>Remaining Time</th>-->
                 <th>Status</th>
             </tr>
             </thead>
@@ -36,6 +37,11 @@ View Appointments
                 <td>{{ appointment.pet_name.name }}</td>
                 <td>{{ appointment.veterinary_physician }}</td>
                 <td>{{ appointment.visit_schedule|date:'DATETIME_FORMAT' }}</td>
+                <!--{% if appointment.visit_schedule|timeuntil < "3 days" %}
+                <td><font color="red">{{ appointment.visit_schedule|timeuntil }}</font></td>
+                {% else %}
+                <td>{{ appointment.visit_schedule|timeuntil }}</td>
+                {% endif %}-->
                 {% if appointment.is_confirmed %}
                 <td class="alert-success">Confirmed</td>
                 {% else %}

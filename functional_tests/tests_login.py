@@ -23,7 +23,7 @@ class LoginTests(StaticLiveServerTestCase):
         self.selenium.implicitly_wait(3)
 
     def test_login_is_running(self):
-        response = self.client.get(reverse('login'))
+        response = self.client.get(reverse('appointments:login'))
         self.assertEqual(response.status_code, 200)
 
     def test_login_is_accessible(self):

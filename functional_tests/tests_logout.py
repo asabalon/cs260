@@ -31,6 +31,6 @@ class LogoutTests(StaticLiveServerTestCase):
         logout_link = self.selenium.find_element_by_name('lnk_logout').is_displayed()
         self.assertTrue(logout_link)
 
-    def test_logout_goesto_login(self):
+    def test_logout_goes_to_login(self):
         self.selenium.find_element_by_name('lnk_logout').click()
         self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, '/appointments/login/'))
