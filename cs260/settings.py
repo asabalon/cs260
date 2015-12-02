@@ -120,7 +120,7 @@ STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), "static")
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 if DEBUG:
-    EEMAIL_HOST = 'localhost'
+    EMAIL_HOST = 'localhost'
     EMAIL_PORT = 1025
     EMAIL_HOST_USER = ''
     EMAIL_HOST_PASSWORD = ''

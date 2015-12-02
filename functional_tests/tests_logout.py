@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test import Client
+from appointments.models import Customer
 from selenium.webdriver.firefox.webdriver import WebDriver
 
 
@@ -18,7 +19,7 @@ class LogoutTests(StaticLiveServerTestCase):
 
     def setUp(self):
         self.c = Client()
-        self.user = User.objects.create_user(username="admin", email="admin@admin.com", password="admin")
+        self.user = Customer.objects.create_user(username="admin", email="admin@admin.com", password="admin")
         self.c.login(username='admin', password='admin')
 
         self.selenium.get('%s%s' % (self.live_server_url, '/appointments/login/'))
@@ -31,6 +32,6 @@ class LogoutTests(StaticLiveServerTestCase):
         logout_link = self.selenium.find_element_by_name('lnk_logout').is_displayed()
         self.assertTrue(logout_link)
 
-    def test_logout_goes_to_login(self):
+    def test_logout_goesto_login(self):
         self.selenium.find_element_by_name('lnk_logout').click()
         self.assertEquals(self.selenium.current_url, '%s%s' % (self.live_server_url, '/appointments/login/'))
