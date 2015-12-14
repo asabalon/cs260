@@ -23,16 +23,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'ztq7$+0-j)ndlaa534n0d3+$6!q@v)spab%0odb(lb4kczgjkn'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
 
 INSTALLED_APPS = (
     # Django Applications
-
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -41,6 +40,7 @@ INSTALLED_APPS = (
     # Third-party Applications
     'crispy_forms',
     'bootstrap3_datetime',
+    'mod_wsgi.server',
     # Developer applications
     'appointments',
     'django.contrib.admin',
@@ -81,10 +81,14 @@ WSGI_APPLICATION = 'cs260.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
+CONN_MAX_AGE = 0
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'OPTIONS': {
+            'read_default_file': os.path.join(os.path.dirname(BASE_DIR), 'database/db.cnf'),
+        },
     }
 }
 
@@ -126,3 +130,4 @@ if DEBUG:
     EMAIL_HOST_PASSWORD = ''
     EMAIL_USE_TLS = False
     DEFAULT_FROM_EMAIL = 'testing@example.com'
+
