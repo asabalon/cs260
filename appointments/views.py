@@ -136,26 +136,18 @@ class DoctorAppointmentListView(ListView):
 
     def post(self, request, *args, **kwargs):
         user_id = request.user.id
-        action = None
-        for key in request.POST.keys():
-            if key.startswith('btn_submit:'):
-                appointment_id = key[7:]
-                break
+        appointment_id = request.POST['btn_submit']
 
         cursor = connection.cursor()
 
-        cursor.execute("UPDATE appointment SET status_id = '3' "
-                       "WHERE appointment_id = %s;", [appointment_id])
-        connection.commit()
-
+        cursor.execute(("UPDATE appointment SET status_id = 3 "
+                       "WHERE appointment_id = %s;"), [appointment_id])
         cursor.execute((
             "SELECT * FROM appointment JOIN user_details ON "
             "appointment.patient_id = user_details.user_details_id JOIN auth_user ON "
             "user_details.user_details_id = auth_user.id "
             "WHERE appointment.doctor_id = %s"
         ), [user_id])
-
-
 
         appointments = dict_fetchall(cursor)
         return render(request, self.template_name, {'appointments': appointments})

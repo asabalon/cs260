@@ -18,7 +18,7 @@ View Appointments
     {% endif %}
     <div class="panel panel-default">
         <div class="panel-heading">My Appointments</div>
-    <form action="" method="post">
+
         <table class="table">
             <thead>
             <tr>
@@ -31,7 +31,8 @@ View Appointments
             </thead>
             <tbody>
             {% for appointment in appointments %}
-            <tr name="appointment_row:{{ appointment.appointment_id }}">
+                <form action="" method="post">
+            <tr name="appointment_row" value="{{ appointment.appointment_id }}">
                 <th scope="row" style="vertical-align: middle">{{ forloop.counter }}</th>
                 <td style="vertical-align: middle">{{ appointment.first_name }} {{ appointment.last_name }}</td>
                 <td style="vertical-align: middle">{{ appointment.appointment_date|date:'DATETIME_FORMAT' }}</td>
@@ -43,12 +44,12 @@ View Appointments
                 {% if appointment.status_id == 3 %}
                 <td class="alert-success">Confirmed</td>
                 {% else %}
-                <td><button class="btn btn-primary btn-block" type="submit" name="btn_submit:{{ appointment.appointment_id }}">Confirm
+                <td><button class="btn btn-primary btn-block" type="submit" name="btn_submit" value="{{ appointment.appointment_id }}">Confirm
                         </button></td>
                 {% endif %}
-            </tr>
+            </tr></tbody>
             {% endfor %}
-            </tbody>
+
         </table>
     </form>
     </div>
