@@ -29,9 +29,10 @@ class AppointmentListView(ListView):
         cursor = connection.cursor()
 
         cursor.execute((
-            "SELECT appointment.*, auth_user.* from appointment, auth_user, patient, user_details "
+            "SELECT appointment.*, auth_user.first_name, auth_user.last_name, appointment_status.name as status "
+            "FROM appointment, auth_user, patient, user_details, appointment_status "
             "WHERE id = doctor_id AND patient.patient_id = %s AND user_details_id = patient.patient_id "
-            "AND appointment.patient_id = patient.patient_id;"
+            "AND appointment.patient_id = patient.patient_id AND appointment_status.status_id = appointment.status_id;"
         ), [user_id])
 
         appointments = dict_fetchall(cursor)
