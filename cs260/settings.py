@@ -23,15 +23,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'ztq7$+0-j)ndlaa534n0d3+$6!q@v)spab%0odb(lb4kczgjkn'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = []
 
 
 # Application definition
 
 INSTALLED_APPS = (
     # Django Applications
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -43,7 +44,6 @@ INSTALLED_APPS = (
     'mod_wsgi.server',
     # Developer applications
     'appointments',
-    'django.contrib.admin',
 )
 
 MIDDLEWARE_CLASSES = (

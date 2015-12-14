@@ -7,11 +7,11 @@ from bootstrap3_datetime.widgets import DateTimePicker
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Submit, Reset, HTML
 from crispy_forms.bootstrap import FormActions
-from .models import Pet, Appointment
+from .models import Appointment, UserDetails
 
 
 class AppointmentForm(forms.ModelForm):
-    pet_owner_name = forms.CharField(widget=forms.TextInput(attrs={'readonly': True}))
+    patient_name = forms.CharField(widget=forms.TextInput(attrs={'readonly': True}))
 
     helper = FormHelper()
     helper.form_method = "POST"
@@ -19,13 +19,10 @@ class AppointmentForm(forms.ModelForm):
     helper.layout = Layout(
         Fieldset(
             'Schedule an Appointment',
-            'pet_owner_name',
-            'pet_name',
-            'pet_owner',
-            'pet_description',
-            'visit_schedule',
-            'visit_description',
-            'veterinary_physician'
+            'patient_name',
+            'patient',
+            'doctor',
+            'appointment_date',
         ),
         FormActions(
             Submit('submit', 'Schedule', css_class='btn btn-primary'),
@@ -37,17 +34,14 @@ class AppointmentForm(forms.ModelForm):
 
     class Meta:
         model = Appointment
-        fields = ['pet_owner', 'pet_name', 'pet_description', 'visit_schedule', 'visit_description',
-                  'veterinary_physician']
+        fields = ['patient_name', 'patient', 'doctor', 'appointment_date']
         widgets = {
-            'pet_owner': forms.HiddenInput(attrs={'name': 'pet_owner_id'}),
-            'pet_description': forms.Textarea(),
-            'visit_description': forms.Textarea(),
-            'visit_schedule': DateTimePicker(options={
+            'patient': forms.HiddenInput(attrs={'name': 'patient'}),
+            'appointment_date': DateTimePicker(options={
                 'format': 'MM/DD/YYYY h:mm a',
                 'pickSeconds': False
             }),
-            'veterinary_physician': forms.Select(
+            'doctor': forms.Select(
                 attrs={'onchange': "change_iframe_src(this.options[this.selectedIndex].value, $('#iframe_calendar'))"})
         }
 
@@ -55,7 +49,7 @@ class AppointmentForm(forms.ModelForm):
         js = {'custom/js/form_event_actions.js'}
 
     def clean_visit_schedule(self):
-        sent_datetime = self.cleaned_data['visit_schedule']
+        sent_datetime = self.cleaned_data['appointment_date']
         current_datetime = localtime(now())
         if (current_datetime - sent_datetime) > timedelta(seconds=1):
             raise forms.ValidationError("Cannot Schedule an Appointment at this Date and Time")
@@ -66,11 +60,55 @@ class AppointmentForm(forms.ModelForm):
         return sent_datetime
 
 
+class UserDetailsForm(forms.ModelForm):
+    last_name = forms.CharField(
+        widget=forms.TextInput(attrs={'required': True, 'max_length': 30, }),
+    )
+    first_name = forms.CharField(
+        widget=forms.TextInput(attrs={'required': True, 'max_length': 30, })
+    )
+
+    helper = FormHelper()
+    helper.form_method = "POST"
+    helper.form_action = ''
+    helper.layout = Layout(
+        Fieldset(
+            'Update Your Profile',
+            'first_name',
+            'last_name',
+            'gender',
+            'date_of_birth',
+            'phone_number',
+            'mobile_number',
+            'address',
+        ),
+        FormActions(
+            Submit('submit', 'Update', css_class='btn btn-primary'),
+            Reset('reset', 'Clear', css_class='btn btn-default'),
+            HTML(
+                '<a id="cancel-id-cancel" name="cancel" value="Cancel" class="btn btn btn-default" href="{% url \'appointments:home\' %}">Cancel</a>')
+        )
+    )
+
+    class Meta:
+        model = UserDetails
+        fields = ['first_name', 'last_name', 'gender', 'date_of_birth', 'phone_number', 'mobile_number', 'address']
+        widgets = {
+            'patient': forms.HiddenInput(attrs={'name': 'patient'}),
+            'date_of_birth': DateTimePicker(options={
+                'format': 'MM/DD/YYYY',
+                'pickSeconds': False
+            }),
+            'address': forms.Textarea(),
+            'mobile_number': forms.NumberInput,
+        }
+
+
 class RegistrationForm(forms.Form):
     username = forms.RegexField(
         regex=r'^\w+$',
         widget=forms.TextInput(
-            attrs={'required': True, 'max_length': 30, 'placeholder': 'UserName', 'class': 'form-control'}),
+            attrs={'required': True, 'max_length': 30, 'placeholder': 'Username', 'class': 'form-control'}),
         error_messages={
             'invalid': "This value must contain only letters, numbers and underscores."},
         label='')

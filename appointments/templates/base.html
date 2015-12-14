@@ -1,11 +1,11 @@
 {% load staticfiles %}
 <style>
     body {
-        background: url({% static 'images/bg.jpg' %}) no-repeat center center fixed;
-        -webkit-background-size: cover;
-        -moz-background-size: cover;
-        -o-background-size: cover;
-        background-size: cover;
+    background: url({% static 'images/bg.jpg' %}) no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
     }
 </style>
 <html>
@@ -29,23 +29,24 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="navbar-brand" href="#">
-                <img src="{% static 'images/logo.png' %}" class="img-responsive" alt="" style=""/></a>
+                <div>Clinic Appointment Management System</div>
+            </a>
         </div>
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
                 <li>
                     {% if user.is_authenticated %}
-                        <a href="#" name="lnk_account">Welcome {{ user.username }}!</a>
+                    <a href="#" name="lnk_account">Welcome {{ user.username }}!</a>
                     {% endif %}
                 </li>
                 <li name="li_home"><a href="{% url 'appointments:home' %}">Home</a></li>
                 <li><a href="#">About</a></li>
                 <li><a href="#">Members</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'appointments:logout' %}" name="lnk_logout">Logout</a></li>
+                <li><a href="{% url 'appointments:logout' %}" name="lnk_logout">Logout</a></li>
                 {% else %}
-                    <li><a href="{% url 'appointments:login' %}" name="lnk_login">Login</a></li>
+                <li><a href="{% url 'appointments:login' %}" name="lnk_login">Login</a></li>
                 {% endif %}
             </ul>
         </div><!-- /.navbar-collapse -->

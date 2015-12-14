@@ -1,12 +1,24 @@
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, render_to_response
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
+from django.db import connection
 from django.views.generic import ListView, FormView
 from django.utils.decorators import method_decorator
-from .forms import AppointmentForm, RegistrationForm, PasswordChangeForm
-from .models import Pet, Appointment, Customer, VeterinaryPhysician
+from django.utils.timezone import localtime, now
+from .forms import AppointmentForm, RegistrationForm, PasswordChangeForm, UserDetailsForm
+from .models import Appointment, Doctor, Patient, UserDetails
+
+
+def dict_fetchall(cursor):
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+        ]
 
 
 class AppointmentListView(ListView):
@@ -28,97 +40,167 @@ class AppointmentFormView(FormView):
     template_name = 'add_appointment.html'
 
     def get(self, request, *args, **kwargs):
-        pet_owner_id = request.user.id
-        customer = Customer.objects.get(id=pet_owner_id)
-        form = self.form_class(initial={
-            'pet_owner': customer,
-            'pet_owner_name': str(customer),
-        })
+        user_id = request.user.id
 
-        return render(request, self.template_name, {'form': form, 'success': False})
+        cursor = connection.cursor()
+        cursor.execute((
+            "SELECT * FROM user_role, auth_user, patient, user_details "
+            "WHERE id = %s AND patient_id = id AND user_details_id = id AND user_id = id;"
+        ), [user_id])
+
+        patient = dict_fetchall(cursor)
+
+        if (len(patient) > 1 or len(patient) < 1):
+            self.template_name = 'error/error.html'
+            context = {'error_message': 'Cannot Process your Request this time.'}
+        elif ():
+            self.template_name = 'error/error.html'
+            context = {'error_message': 'You cannot access this page.'}
+        else:
+            form = self.form_class(initial={
+                'patient_name': '%s %s' % (patient[0].get('first_name'), patient[0].get('last_name')),
+                'patient': patient[0].get('patient_id'),
+            })
+            context = {'form': form, 'success': False}
+
+        return render(request, self.template_name, context)
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(data=request.POST)
         if form.is_valid():
-            success = True
-            form.save()
-            customer = form.instance.pet_owner
-            form = self.form_class(
-                initial={'pet_owner': customer, 'pet_owner_name': str(customer)})
-        else:
-            success = False
+            try:
+                user_id = request.user.id
+                cursor = connection.cursor()
 
-        return render(request, self.template_name, {'form': form, 'success': success})
+                # Update User and User Details
+                cursor.execute((
+                    "INSERT INTO appointment (patient_id, doctor_id, status_id, appointment_date) "
+                    "VALUES (%s, %s, 1, %s);"
+                ), [form.cleaned_data['patient'].patient_id, form.cleaned_data['doctor'].doctor_id,
+                    form.cleaned_data['appointment_date']])
+
+                cursor.execute((
+                    "SELECT * FROM auth_user, patient, user_details "
+                    "WHERE id = %s AND patient_id = id AND user_details_id = id;"
+                ), [user_id])
+
+                patient = dict_fetchall(cursor)
+
+                form = self.form_class(initial={
+                    'patient_name': '%s %s' % (patient[0].get('first_name'), patient[0].get('last_name')),
+                    'patient': patient[0].get('patient_id'),
+                })
+
+                context = {'form': form, 'success': True}
+            except Exception as e:
+                self.template_name = 'error/error.html'
+                context = {'error_message': 'Cannot Process your Request this time.'}
+        else:
+            context = {}
+
+        return render(request, self.template_name, context)
 
     @method_decorator(login_required(login_url='../login'))
     def dispatch(self, request, *args, **kwargs):
         return super(AppointmentFormView, self).dispatch(request, *args, **kwargs)
 
 
+class UserDetailsFormView(FormView):
+    form_class = UserDetailsForm
+    template_name = 'update_profile.html'
+
+    def get(self, request, *args, **kwargs):
+        user_id = request.user.id
+        cursor = connection.cursor()
+
+        cursor.execute((
+            "SELECT * FROM auth_user, patient, user_details "
+            "WHERE id = %s AND patient_id = id AND user_details_id = id;"
+        ), [user_id])
+        patient = dict_fetchall(cursor)
+
+        if (len(patient) > 1):
+            self.template_name = 'error/error.html'
+            context = {'error_message': 'Cannot Process your Request this time.'}
+        elif (len(patient) < 1):
+            form = self.form_class()
+            context = {'form': form, 'success': False}
+        else:
+            form = self.form_class(initial={
+                'first_name': patient[0].get('first_name'),
+                'last_name': patient[0].get('last_name'),
+                'gender': patient[0].get('gender'),
+                'date_of_birth': patient[0].get('date_of_birth'),
+                'phone_number': patient[0].get('phone_number'),
+                'mobile_number': patient[0].get('mobile_number'),
+                'address': patient[0].get('address'),
+            })
+            context = {'form': form, 'success': False}
+
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(data=request.POST)
+
+        if form.is_valid():
+            user_id = request.user.id
+            cursor = connection.cursor()
+
+            try:
+                # Update User and User Details
+                cursor.execute((
+                    "UPDATE auth_user SET first_name = %s, last_name = %s;"
+                    "UPDATE user_details "
+                    "SET gender = %s, date_of_birth = %s, phone_number = %s, mobile_number = %s, address = %s, last_updated = %s;"
+                ), [form.cleaned_data['first_name'], form.cleaned_data['last_name'], form.cleaned_data['gender'],
+                    form.cleaned_data['date_of_birth'], form.cleaned_data['phone_number'],
+                    form.cleaned_data['mobile_number'], form.cleaned_data['address'], localtime(now())])
+
+                cursor.execute((
+                    "SELECT * FROM auth_user, patient, user_details "
+                    "WHERE id = %s AND patient_id = id AND user_details_id = id;"
+                ), [user_id])
+                patient = dict_fetchall(cursor)
+
+                form = self.form_class(initial={
+                    'first_name': patient[0].get('first_name'),
+                    'last_name': patient[0].get('last_name'),
+                    'gender': patient[0].get('gender'),
+                    'date_of_birth': patient[0].get('date_of_birth'),
+                    'phone_number': patient[0].get('phone_number'),
+                    'mobile_number': patient[0].get('mobile_number'),
+                    'address': patient[0].get('address'),
+                })
+
+                context = {'form': form, 'success': True}
+            except Exception as e:
+                self.template_name = 'error/error.html'
+                context = {'error_message': 'Cannot Process your Request this time.'}
+        else:
+            context = {}
+
+        return render(request, self.template_name, context)
+
+    @method_decorator(login_required(login_url='../login'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(UserDetailsFormView, self).dispatch(request, *args, **kwargs)
+
+
 @login_required(login_url='../login')
-def retrieve_vet_email(request):
+def retrieve_doc_email(request):
     if request.method == 'POST':
-        vet_id = request.POST.get('vet_id')
+        doc_id = request.POST.get('doc_id')
     else:
-        vet_id = request.GET.get('vet_id')
+        doc_id = request.GET.get('doc_id')
 
-    selected_vet = VeterinaryPhysician.objects.get(id=vet_id)
+    cursor = connection.cursor()
+    cursor.execute((
+        "SELECT * FROM auth_user WHERE id = %s;"
+    ), [doc_id])
 
-    return JsonResponse({'vet_email': selected_vet.email})
+    doctor = dict_fetchall(cursor)
 
-
-# Need Pet Registration Feature
-@login_required(login_url='../login')
-def create_test_pet(request):
-    if request.method == 'GET':
-        customer = Customer.objects.get(id=request.user.id)
-        pet = Pet.objects.create(
-            name=request.GET.get('name'),
-            breed=request.GET.get('breed'),
-            owner=customer,
-            age_in_months=request.GET.get('age'),
-        )
-        pet.save()
-        return JsonResponse({'pet_id': pet.id})
-    else:
-        return JsonResponse({'pet_id': None})
-
-
-# Need Separate Registration for Veterinary Physicians
-@login_required(login_url='../login')
-def create_test_veterinary_physician(request):
-    if (request.method == 'GET'):
-        veterinary_physician = VeterinaryPhysician.objects.create(
-            username=request.GET.get('username'),
-            first_name=request.GET.get('first_name'),
-            middle_name=request.GET.get('middle_name'),
-            last_name=request.GET.get('last_name'),
-            email=request.GET.get('email'),
-        )
-        veterinary_physician.save()
-        return JsonResponse({'vet_id': veterinary_physician.id})
-    else:
-        return JsonResponse({'vet_id': None})
-
-
-# Need Update Profile Features
-@login_required(login_url='../login')
-def update_user_details(request):
-    if (request.method == 'GET'):
-        customer = Customer.objects.get(id=request.user.id)
-
-        print(customer)
-        print(type(customer.first_name))
-        customer.first_name = request.GET.get('first_name'),
-        customer.middle_name = request.GET.get('middle_name'),
-        customer.last_name = request.GET.get('last_name'),
-        customer.save()
-
-        print(type(customer.first_name))
-
-        return JsonResponse({'result': str(customer)})
-    else:
-        return JsonResponse({'result': None})
+    return JsonResponse({'doc_email': doctor[0].get('email')})
 
 
 def login_user(request):
@@ -143,18 +225,38 @@ def login_user(request):
     return render_to_response('auth.html', {'state': state, 'username': username})
 
 
+# TODO: Change to Transactions
 def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST, auto_id=False)
         if form.is_valid():
-            user = Customer.objects.create_user(
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password1'],
-                email=form.cleaned_data['email']
-            )
+            encrypted_password = make_password(form.cleaned_data['password1'])
+            cursor = connection.cursor()
+
+            # Create User
+            cursor.execute((
+                "INSERT INTO auth_user (password, is_superuser, username, email, is_staff, is_active, date_joined)"
+                "VALUES (%s, 0, %s, %s, 0, 1, %s)"
+            ), [encrypted_password, form.cleaned_data['username'], form.cleaned_data['email'], localtime(now())])
+
+            # Fetch User Details
+            cursor.execute((
+                "SELECT id FROM auth_user WHERE username = %s"
+            ), [form.cleaned_data['username']])
+
+            user = dict_fetchall(cursor)
+
+            # Create User Details and Patient
+            cursor.execute((
+                "INSERT INTO user_details (user_details_id) VALUES (%s);"
+                "INSERT INTO patient (patient_id, patient_since) VALUES (%s, %s);"
+                "INSERT INTO user_role (user_id, role_id) VALUES (%s, %s);"
+            ), [user[0].get('id'), user[0].get('id'), localtime(now()), user[0].get('id'), 4])
+
             return HttpResponseRedirect('../register/success/')
     else:
         form = RegistrationForm()
+
     variables = RequestContext(request, {
         'form': form
     })
@@ -170,9 +272,24 @@ def register_success(request):
 
 @login_required(login_url='../login', redirect_field_name=None)
 def home(request):
-    pet_owner_id = request.user.id
-    customer = Customer.objects.get(id=pet_owner_id)
-    return render_to_response('home.html', {'user': request.user, 'pet_owner': customer})
+    user_id = request.user.id
+    cursor = connection.cursor()
+    cursor.execute((
+        "SELECT * FROM auth_user, user_details "
+        "WHERE id = %s AND user_details_id = id;"
+    ), [user_id])
+
+    user = dict_fetchall(cursor)
+
+    if (len(user) > 1 or len(user) < 1):
+        return render_to_response('error/error.html', {'error_message': 'Cannot Process your Request this time.'})
+    else:
+        if (user[0].get('last_updated') is None):
+            is_profile_updated = False
+        else:
+            is_profile_updated = True
+
+        return render_to_response('home.html', {'user': request.user, 'is_profile_updated': is_profile_updated})
 
 
 class PasswordChangeView(FormView):

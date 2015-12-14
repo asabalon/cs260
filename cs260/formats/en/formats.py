@@ -13,6 +13,7 @@ FIRST_DAY_OF_WEEK = 1
 
 DATE_INPUT_FORMATS = (
     '%d-%m-%Y',     # '21-03-2014'
+    '%m/%d/%Y'
 )
 TIME_INPUT_FORMATS = (
     '%H:%M:%S',     # '17:59:59'
