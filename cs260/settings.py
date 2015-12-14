@@ -41,7 +41,7 @@ INSTALLED_APPS = (
     # Third-party Applications
     'crispy_forms',
     'bootstrap3_datetime',
-    'mod_wsgi.server',
+    # 'mod_wsgi.server',
     # Developer applications
     'appointments',
 )
@@ -86,11 +86,14 @@ CONN_MAX_AGE = 0
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': os.path.join(os.path.dirname(BASE_DIR), 'database/db.cnf'),
-        },
+        'NAME': 'clinicdb',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306'
     }
 }
+
 
 
 # Internationalization

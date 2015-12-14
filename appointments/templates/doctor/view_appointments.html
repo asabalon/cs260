@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}
+View Appointments
+{% endblock %}
+
+{% block page_panel %}
+<div class="col-xs-offset-1 col-xs-10">
+    {% if appointments|length <= 0 %}
+    <div class="alert alert-danger" role="alert">
+        No Appointments yet
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        Regularly check the status of your appointments.
+    </div>
+    {% endif %}
+    <div class="panel panel-default">
+        <div class="panel-heading">My Appointments</div>
+    <form action="" method="post">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>No</th>
+                <th>Patient Name</th>
+                <th>Schedule</th>
+                <!--<th>Remaining Time</th>-->
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for appointment in appointments %}
+            <tr name="appointment_row:{{ appointment.appointment_id }}">
+                <th scope="row" style="vertical-align: middle">{{ forloop.counter }}</th>
+                <td style="vertical-align: middle">{{ appointment.first_name }} {{ appointment.last_name }}</td>
+                <td style="vertical-align: middle">{{ appointment.appointment_date|date:'DATETIME_FORMAT' }}</td>
+                <!--{% if appointment.visit_schedule|timeuntil < "3 days" %}
+                <td><font color="red">{{ appointment.visit_schedule|timeuntil }}</font></td>
+                {% else %}
+                <td>{{ appointment.visit_schedule|timeuntil }}</td>
+                {% endif %}-->
+                {% if appointment.status_id == 3 %}
+                <td class="alert-success">Confirmed</td>
+                {% else %}
+                <td><button class="btn btn-primary btn-block" type="submit" name="btn_submit:{{ appointment.appointment_id }}">Confirm
+                        </button></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </form>
+    </div>
+</div>
+{% endblock %}

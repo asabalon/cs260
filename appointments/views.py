@@ -114,6 +114,56 @@ class AppointmentFormView(FormView):
         return super(AppointmentFormView, self).dispatch(request, *args, **kwargs)
 
 
+class DoctorAppointmentListView(ListView):
+    model = Appointment
+    template_name = 'doctor/view_appointments.html'
+
+    def get(self, request, *args, **kwargs):
+        user_id = request.user.id
+        cursor = connection.cursor()
+
+        cursor.execute((
+            "SELECT * FROM appointment JOIN user_details ON "
+            "appointment.patient_id = user_details.user_details_id JOIN auth_user ON "
+            "user_details.user_details_id = auth_user.id "
+            "WHERE appointment.doctor_id = %s"
+        ), [user_id])
+
+        appointments = dict_fetchall(cursor)
+
+        return render(request, self.template_name, {'appointments': appointments})
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.user.id
+        action = None
+        for key in request.POST.keys():
+            if key.startswith('btn_submit:'):
+                appointment_id = key[7:]
+                break
+
+        cursor = connection.cursor()
+
+        cursor.execute("UPDATE appointment SET status_id = '3' "
+                       "WHERE appointment_id = %s;", [appointment_id])
+        connection.commit()
+
+        cursor.execute((
+            "SELECT * FROM appointment JOIN user_details ON "
+            "appointment.patient_id = user_details.user_details_id JOIN auth_user ON "
+            "user_details.user_details_id = auth_user.id "
+            "WHERE appointment.doctor_id = %s"
+        ), [user_id])
+
+
+
+        appointments = dict_fetchall(cursor)
+        return render(request, self.template_name, {'appointments': appointments})
+
+    @method_decorator(login_required(login_url='../login'))
+    def dispatch(self, *args, **kwargs):
+        return super(DoctorAppointmentListView, self).dispatch(*args, **kwargs)
+
+
 class UserDetailsFormView(FormView):
     form_class = UserDetailsForm
     template_name = 'update_profile.html'
@@ -129,10 +179,10 @@ class UserDetailsFormView(FormView):
 
         patient = dict_fetchall(cursor)
 
-        if (len(patient) > 1):
+        if len(patient) > 1:
             self.template_name = 'error/error.html'
             context = {'error_message': 'Cannot Process your Request this time.'}
-        elif (len(patient) < 1):
+        elif len(patient) < 1:
             form = self.form_class()
             context = {'form': form, 'success': False}
         else:
@@ -215,7 +265,8 @@ def retrieve_doc_email(request):
 
 def login_user(request):
     state = ""
-    username = password = ''
+    username = ''
+    password = ''
     if request.POST:
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -291,10 +342,10 @@ def home(request):
 
     user = dict_fetchall(cursor)
 
-    if (len(user) > 1 or len(user) < 1):
+    if len(user) > 1 or len(user) < 1:
         return render_to_response('error/error.html', {'error_message': 'Cannot Process your Request this time.'})
     else:
-        if (user[0].get('last_updated') is None):
+        if user[0].get('last_updated') is None:
             is_profile_updated = False
         else:
             is_profile_updated = True
