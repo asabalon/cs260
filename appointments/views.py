@@ -29,9 +29,10 @@ class AppointmentListView(ListView):
         cursor = connection.cursor()
 
         cursor.execute((
-            "SELECT appointment.*, auth_user.* from appointment, auth_user, patient, user_details "
+            "SELECT appointment.*, auth_user.first_name, auth_user.last_name, appointment_status.name as status "
+            "FROM appointment, auth_user, patient, user_details, appointment_status "
             "WHERE id = doctor_id AND patient.patient_id = %s AND user_details_id = patient.patient_id "
-            "AND appointment.patient_id = patient.patient_id;"
+            "AND appointment.patient_id = patient.patient_id AND appointment_status.status_id = appointment.status_id;"
         ), [user_id])
 
         appointments = dict_fetchall(cursor)
@@ -209,12 +210,14 @@ class UserDetailsFormView(FormView):
             try:
                 # Update User and User Details
                 cursor.execute((
-                    "UPDATE auth_user SET first_name = %s, last_name = %s;"
+                    "UPDATE auth_user SET first_name = %s, last_name = %s WHERE id = %s;"
                     "UPDATE user_details "
-                    "SET gender = %s, date_of_birth = %s, phone_number = %s, mobile_number = %s, address = %s, last_updated = %s;"
-                ), [form.cleaned_data['first_name'], form.cleaned_data['last_name'], form.cleaned_data['gender'],
+                    "SET gender = %s, date_of_birth = %s, phone_number = %s, mobile_number = %s, address = %s, last_updated = %s "
+                    "WHERE user_details_id = %s"
+                ), [form.cleaned_data['first_name'], form.cleaned_data['last_name'], user_id,
+                    form.cleaned_data['gender'],
                     form.cleaned_data['date_of_birth'], form.cleaned_data['phone_number'],
-                    form.cleaned_data['mobile_number'], form.cleaned_data['address'], localtime(now())])
+                    form.cleaned_data['mobile_number'], form.cleaned_data['address'], localtime(now()), user_id])
 
                 cursor.execute((
                     "SELECT * FROM auth_user, patient, user_details "

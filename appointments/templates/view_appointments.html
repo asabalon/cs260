@@ -40,11 +40,7 @@ View Appointments
                 {% else %}
                 <td>{{ appointment.visit_schedule|timeuntil }}</td>
                 {% endif %}-->
-                {% if appointment.is_confirmed %}
-                <td class="alert-success">Confirmed</td>
-                {% else %}
-                <td class="alert-error">Waiting Confirmation</td>
-                {% endif %}
+                <td class="alert-success">{{ appointment.status }}</td>
             </tr>
             {% endfor %}
             </tbody>
