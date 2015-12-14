@@ -23,7 +23,6 @@ View Appointments
             <thead>
             <tr>
                 <th>#</th>
-                <th>Pet Name</th>
                 <th>Doctor's Name</th>
                 <th>Schedule</th>
                 <!--<th>Remaining Time</th>-->
@@ -34,9 +33,8 @@ View Appointments
             {% for appointment in appointments %}
             <tr>
                 <th scope="row">{{ forloop.counter }}</th>
-                <td>{{ appointment.pet_name.name }}</td>
-                <td>{{ appointment.veterinary_physician }}</td>
-                <td>{{ appointment.visit_schedule|date:'DATETIME_FORMAT' }}</td>
+                <td>Dr. {{ appointment.first_name }} {{ appointment.last_name }}</td>
+                <td>{{ appointment.appointment_date|date:'DATETIME_FORMAT' }}</td>
                 <!--{% if appointment.visit_schedule|timeuntil < "3 days" %}
                 <td><font color="red">{{ appointment.visit_schedule|timeuntil }}</font></td>
                 {% else %}

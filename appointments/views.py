@@ -1,7 +1,6 @@
 from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, render_to_response
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
@@ -10,7 +9,7 @@ from django.views.generic import ListView, FormView
 from django.utils.decorators import method_decorator
 from django.utils.timezone import localtime, now
 from .forms import AppointmentForm, RegistrationForm, PasswordChangeForm, UserDetailsForm
-from .models import Appointment, Doctor, Patient, UserDetails
+from .models import Appointment
 
 
 def dict_fetchall(cursor):
@@ -26,9 +25,18 @@ class AppointmentListView(ListView):
     template_name = 'view_appointments.html'
 
     def get(self, request, *args, **kwargs):
-        self.queryset = Appointment.objects.filter(pet_owner_id=request.user.id)
+        user_id = request.user.id
+        cursor = connection.cursor()
 
-        return render(request, self.template_name, {'appointments': self.queryset})
+        cursor.execute((
+            "SELECT appointment.*, auth_user.* from appointment, auth_user, patient, user_details "
+            "WHERE id = doctor_id AND patient.patient_id = %s AND user_details_id = patient.patient_id "
+            "AND appointment.patient_id = patient.patient_id;"
+        ), [user_id])
+
+        appointments = dict_fetchall(cursor)
+
+        return render(request, self.template_name, {'appointments': appointments})
 
     @method_decorator(login_required(login_url='../login'))
     def dispatch(self, *args, **kwargs):
@@ -41,8 +49,8 @@ class AppointmentFormView(FormView):
 
     def get(self, request, *args, **kwargs):
         user_id = request.user.id
-
         cursor = connection.cursor()
+
         cursor.execute((
             "SELECT * FROM user_role, auth_user, patient, user_details "
             "WHERE id = %s AND patient_id = id AND user_details_id = id AND user_id = id;"
@@ -67,6 +75,7 @@ class AppointmentFormView(FormView):
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(data=request.POST)
+
         if form.is_valid():
             try:
                 user_id = request.user.id
@@ -117,6 +126,7 @@ class UserDetailsFormView(FormView):
             "SELECT * FROM auth_user, patient, user_details "
             "WHERE id = %s AND patient_id = id AND user_details_id = id;"
         ), [user_id])
+
         patient = dict_fetchall(cursor)
 
         if (len(patient) > 1):
