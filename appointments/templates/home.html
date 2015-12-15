@@ -25,7 +25,13 @@
         <div class="row">
             <a href="../add">ADD APPOINTMENT</a>
             <div class="clearfix"></div>
-            <a href="../view">VIEW APPOINTMENTS</a>
+
+            {% if isDoctor %}
+                <a href="{% url 'appointments:view_doctor_appointments' %}">VIEW DOCTOR APPOINTMENTS</a>
+            {% else %}
+                <a href="{% url 'appointments:view_appointments' %}">VIEW APPOINTMENTS</a>
+            {% endif %}
+
         </div>
         {% else %}
         <div class="alert alert-danger">

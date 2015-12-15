@@ -141,7 +141,7 @@ class DoctorAppointmentListView(ListView):
         cursor = connection.cursor()
 
         cursor.execute(("UPDATE appointment SET status_id = 3 "
-                       "WHERE appointment_id = %s;"), [appointment_id])
+                        "WHERE appointment_id = %s;"), [appointment_id])
         cursor.execute((
             "SELECT * FROM appointment JOIN user_details ON "
             "appointment.patient_id = user_details.user_details_id JOIN auth_user ON "
@@ -337,6 +337,17 @@ def home(request):
 
     user = dict_fetchall(cursor)
 
+    cursor.execute((
+        "SELECT role_id FROM user_role "
+        "WHERE user_id = %s;"
+    ), [user_id])
+    roles = dict_fetchall(cursor)
+    isDoctor = False;
+
+    for role in roles:
+        if role['role_id'] == 2:
+            isDoctor = True
+
     if len(user) > 1 or len(user) < 1:
         return render_to_response('error/error.html', {'error_message': 'Cannot Process your Request this time.'})
     else:
@@ -345,7 +356,8 @@ def home(request):
         else:
             is_profile_updated = True
 
-        return render_to_response('home.html', {'user': request.user, 'is_profile_updated': is_profile_updated})
+        return render_to_response('home.html',
+                                  {'user': request.user, 'is_profile_updated': is_profile_updated, 'isDoctor': isDoctor})
 
 
 class PasswordChangeView(FormView):
